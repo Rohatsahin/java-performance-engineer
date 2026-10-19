@@ -10,6 +10,7 @@
 </p>
 
 <p align="center">
+  <img alt="license" src="https://img.shields.io/badge/license-MIT-green">
   <img alt="status" src="https://img.shields.io/badge/status-early%20draft-orange">
   <img alt="platform" src="https://img.shields.io/badge/runtime-JVM%20on%20Kubernetes-blue">
   <img alt="jdk" src="https://img.shields.io/badge/JDK-21%20to%2027-informational">
@@ -151,6 +152,6 @@ template (claim, one tag, source, version, date, "refuted if").
 
 ## Status and license
 
-Early draft. License: not yet chosen. Not affiliated with or endorsed by Oracle, Datadog,
+Early draft. Licensed under the [MIT License](LICENSE). Not affiliated with or endorsed by Oracle, Datadog,
 Redisson, Netty or any other project named here; names are used only to identify the software they
 refer to.
