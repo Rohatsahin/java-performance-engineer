@@ -1,0 +1,14 @@
+name: Suggest a topic
+description: A JVM performance topic or library the skill should cover
+labels: [enhancement]
+body:
+  - type: textarea
+    id: topic
+    attributes:
+      label: Topic and why an assistant needs it
+    validations:
+      required: true
+  - type: textarea
+    id: sources
+    attributes:
+      label: Primary sources you would cite

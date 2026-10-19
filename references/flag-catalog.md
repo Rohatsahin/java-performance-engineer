@@ -1,5 +1,7 @@
 # Flag catalog and verdicts
 
+> Last reviewed: 2026-10. JDK 21-27 and the library versions named in the text; see `sources.md`.
+
 Verdicts come from reference experiments run by the skill's authors on idle containerized
 services (JDK 25, G1). The raw data is not published, so treat them as strong hypotheses and
 re-test on your JDK, glibc, instance type and load.

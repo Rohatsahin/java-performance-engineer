@@ -1,5 +1,7 @@
 # Library memory, thread and connection behavior
 
+> Last reviewed: 2026-10. JDK 21-27 and the library versions named in the text; see `sources.md`.
+
 Defaults come from project docs or source read on 2026-10 (`sources.md` IDs below). A value may
 differ in an older patch release, so check the version you run. Tags: [O] official, [P] practice,
 [U] unverified.

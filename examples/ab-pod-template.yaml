@@ -1,0 +1,21 @@
+# Template: a label-less copy of a deployment's pod for a same-node A/B memory test.
+# Replace every <placeholder>. The pod has NO labels that match a Service selector, so it receives
+# no traffic. Create one control and one variant per node, pin both to the same node size, and
+# start them together. Change only one variable between control and variant.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: ab-<variant>-<node>
+  namespace: <test-namespace>
+spec:
+  nodeSelector:
+    kubernetes.io/hostname: <node-name>
+  containers:
+    - name: app
+      image: <baseline-or-variant-image>
+      env:
+        - name: MALLOC_ARENA_MAX   # the single variable under test (remove it on the control)
+          value: "4"
+      resources:
+        requests: {memory: <same-as-production>, cpu: <same-as-production>}
+        limits: {memory: <same-as-production>}

@@ -1,5 +1,7 @@
 # Sources and confidence
 
+> Last reviewed: 2026-10.
+
 Evidence policy:
 
 - A claim carries one tag. A combined tag (for example `[O/P]`) means different parts of the

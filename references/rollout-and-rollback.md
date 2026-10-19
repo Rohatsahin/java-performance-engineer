@@ -1,5 +1,7 @@
 # Rollout and rollback
 
+> Last reviewed: 2026-10. JDK 21-27 and the library versions named in the text; see `sources.md`.
+
 ## Before shipping
 
 - Prefer separate changes per flag so attribution and rollback stay clean. If bundled for

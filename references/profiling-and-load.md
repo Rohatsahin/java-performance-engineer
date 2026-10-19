@@ -1,5 +1,7 @@
 # Profiling, methodology and load testing
 
+> Last reviewed: 2026-10. JDK 21-27 and the library versions named in the text; see `sources.md`.
+
 Tags and source IDs are defined in `sources.md`.
 
 ## Profiling workflow

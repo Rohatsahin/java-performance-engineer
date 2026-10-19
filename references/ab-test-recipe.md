@@ -1,5 +1,7 @@
 # Same-node A/B recipe
 
+> Last reviewed: 2026-10. JDK 21-27 and the library versions named in the text; see `sources.md`.
+
 Goal: isolate one change's effect on idle memory.
 
 1. **Variants:** a control, one variant per change, then a stacked final config. At least two

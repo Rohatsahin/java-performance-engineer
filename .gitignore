@@ -2,3 +2,5 @@
 *.log
 *.hprof
 *.jfr
+__pycache__/
+results/

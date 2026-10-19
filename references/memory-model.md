@@ -1,5 +1,7 @@
 # Where container memory goes
 
+> Last reviewed: 2026-10. JDK 21-27 and the library versions named in the text; see `sources.md`.
+
 An idle JVM service can use several times its heap in total. Attribute the rest.
 
 | Region | How to measure | Notes |

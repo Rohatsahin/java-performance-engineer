@@ -1,5 +1,7 @@
 # Case studies
 
+> Last reviewed: 2026-10. JDK 21-27 and the library versions named in the text; see `sources.md`.
+
 Two anonymized investigations that show the reasoning, not benchmark numbers. JDK 25, G1.
 
 ## 1. Idle pods far above their heap

@@ -1,5 +1,7 @@
 # Formulas and sizing rules
 
+> Last reviewed: 2026-10. JDK 21-27 and the library versions named in the text; see `sources.md`.
+
 Each formula has its variables, validity limits and source. These are generic rules, not
 company data. Tags and IDs: `sources.md`. A formula gives a starting point; confirm by
 measurement.

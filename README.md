@@ -88,7 +88,7 @@ ask a question that matches its description (OOMKilled, JVM flags, pool sizing) 
 Agents without a skills mechanism can still use it: copy the directory into your repo and point
 your agent instructions file (for example `AGENTS.md` or your editor's rules file) at
 `SKILL.md` with a line such as: "For JVM memory, GC, OOM or pool-sizing questions, follow
-`docs/jvm-performance-engineer/SKILL.md` and load only the references it routes to."
+`path/to/jvm-performance-engineer/SKILL.md` and load only the references it routes to."
 
 ### Give it a Kubernetes-aware workflow
 
@@ -122,6 +122,11 @@ SKILL.md        entry point: protocol, rules, routing table
 references/     detail loaded on demand
 addons/         optional vendor notes (Datadog)
 evals/          prompts with expected behaviors
+scripts/        read-only helpers and checkers (see below)
+claims.json     machine-checkable claims: source, tag, expected text
+examples/       A/B pod template
+docs/           integration notes
+tests/          unit tests for the scripts
 assets/         logo
 ```
 
@@ -133,11 +138,36 @@ in [`references/sources.md`](references/sources.md). Facts are stamped with the 
 version they were checked against. Version-bound facts rot fastest: JDK 27 changes the default GC
 rule, the compact headers default and the AOT mode name. Re-verify when yours differs.
 
+## Helper scripts
+
+All read-only. Python scripts use only the standard library.
+
+| Script | Purpose |
+|---|---|
+| `scripts/collect-request-pack.sh POD [NS]` | Gather the `kubectl`/`jcmd` outputs the skill asks for into one folder (env var names only, not values) |
+| `scripts/arena_count.py smaps.txt --cores N` | Estimate glibc arena regions from a saved `/proc/1/smaps` |
+| `scripts/check_claims.py [--online]` | Verify `claims.json`: fields, tags, source IDs, phrases; online mode re-fetches each source |
+| `scripts/check_links.py` | Verify relative links, file references and source IDs |
+| `scripts/run_evals.py` | Run the evals against any agent command and optionally grade with a judge command |
+
 ## Evals
 
 Run the prompts in [`evals/prompts.md`](evals/prompts.md) against your assistant after any edit and
-after each JDK release. Give it only `SKILL.md` and the references it routes to, then check each
-"must" and "must not" line.
+after each JDK release:
+
+```bash
+python3 scripts/run_evals.py --list
+python3 scripts/run_evals.py --agent-cmd "claude -p" --judge-cmd "claude -p" --out results
+```
+
+Without `--judge-cmd`, answers are saved for manual grading against the "must" and "must not"
+lines. Judge output is a model opinion; spot-check it.
+
+## Freshness
+
+CI runs the tests, the offline claims check and the link check on every change. A monthly job
+re-fetches every source in `claims.json` and fails when a source moves or its expected text
+changes, which is the signal to re-verify that claim.
 
 ## Contributing
 
@@ -146,7 +176,7 @@ template (claim, one tag, source, version, date, "refuted if").
 
 ## Roadmap
 
-- A claims file with a link and expectation checker in CI.
+- More claims in `claims.json` (currently 15 of the most decision-relevant).
 - More add-ons (Spring, Kotlin coroutines) kept separate from the generic core.
 - Published raw data for the measured ([E]) results.
 
