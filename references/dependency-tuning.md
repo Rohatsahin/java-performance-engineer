@@ -36,7 +36,9 @@ Check what the JVM uses: `jcmd <pid> VM.info | grep -i active_processor_count`.
 - Event loop threads: `max(1, io.netty.eventLoopThreads or availableProcessors x 2)`.
 - Default allocator is **adaptive** in 4.2 (`io.netty.allocator.type` = adaptive, pooled or
   unpooled). It became the default in 4.2.0.Alpha5, so 4.2.0.Final onward; 4.1.x stays pooled. [O]
-  DEP-NETTY-MIGRATION, DEP-NETTY-SRC
+  DEP-NETTY-MIGRATION, DEP-NETTY-SRC The migration guide recommends moving to 4.2 with
+  `io.netty.allocator.type=pooled` set explicitly and treating the switch to adaptive as a
+  separate soak-tested step, since adaptive is worse for some workloads. [O] DEP-NETTY-MIGRATION
 - Pooled allocator: arenas = min(cores x 2, memory-derived cap), chunk 4 MiB (page 8 KiB <<
   maxOrder 9), per-thread caches (small 256, normal 64, max cached buffer 32 KiB). Memory
   retained per arena or thread cache is not returned promptly. [O/P]
@@ -85,9 +87,12 @@ Check what the JVM uses: `jcmd <pid> VM.info | grep -i active_processor_count`.
   concurrent DB work, not from request threads (`formulas.md`).
 - pgjdbc: `prepareThreshold` 5; statement cache 256 queries or 5 MiB **per connection** (client
   heap = pool size x up to 5 MiB); `defaultRowFetchSize` 0 means the whole result set is read
-  into memory, so set a fetch size (and disable autocommit) to stream large results.
+  into memory, so set a fetch size to stream large results; cursor-based fetching also needs
+  autocommit off, a forward-only statement and a single-statement query, otherwise the driver
+  silently fetches everything. [O] DEP-PGJDBC
 - Each connection is a separate PostgreSQL backend process, and `work_mem` (4 MB default) applies per
-  sort/hash operation, so worst case is connections x operations x `work_mem`. [O] PG-DOCS A
+  sort/hash operation (hash-based operations may use `work_mem x hash_mem_multiplier`, default
+  2.0), so worst case is connections x operations x that limit. [O] PG-DOCS A
   per-connection RSS figure is not documented. [U]
 - Verify: `hikaricp.connections.active/pending` metrics; `select count(*) from pg_stat_activity`.
 
@@ -95,8 +100,10 @@ Check what the JVM uses: `jcmd <pid> VM.info | grep -i active_processor_count`.
 
 - Default sync client Apache5 (since 2.46.0); default async client Netty NIO; the CRT client is
   native ("high throughput"); URL-connection client has limits (no PATCH, no idle-timeout config).
-- Defaults: max connections 50, connect timeout 2 s, read 30 s, connection max idle 60 s,
-  acquire timeout 10 s; no default `apiCallTimeout` or `apiCallAttemptTimeout`, so set them.
+- Defaults (SdkHttpConfigurationOption source, master): max connections 50, connect timeout
+  2 s, read and write 30 s, connection max idle 60 s, acquire timeout 10 s, TCP keepalive off. [O]
+  DEP-AWS-SRC A `defaultsMode` (2.17.102+) changes the connect and TLS-negotiation timeouts.
+  There is no default `apiCallTimeout` or `apiCallAttemptTimeout`, so set them. [O] DEP-AWS-BEST
 - Netty async clients share a ref-counted `SdkEventLoopGroup` (threads named
   `aws-java-sdk-NettyEventLoop`); 0 threads means Netty's default.
 - Each service client owns a connection pool: build one client and share it; close clients you
@@ -106,9 +113,11 @@ Check what the JVM uses: `jcmd <pid> VM.info | grep -i active_processor_count`.
 
 ## Jackson
 
-Default buffer recycling uses `ThreadLocal` + `SoftReference`; the source warns about
-ThreadLocal retention, and a custom pool can be set (`setRecyclerPool`, 2.16+). Which pool is
-default in each of 2.18/2.19/3.x: [U]. Reuse one configured `ObjectMapper` (thread-safe) [P].
+Jackson 2.x (checked at 2.19): the default buffer recycler pool is `ThreadLocal`-based, and its
+source notes the default will likely change in 3.0. [O] DEP-JACKSON-2 Jackson 3.x: the default
+is a `ConcurrentDequePool`. [O] DEP-JACKSON-3 A custom pool can be set (`setRecyclerPool`,
+2.16+). Check which Jackson major your Spring Boot line resolves before reasoning about
+retention. Reuse one configured `ObjectMapper` (thread-safe) [P].
 Verify retention with `jcmd <pid> GC.class_histogram | grep -i BufferRecycler`.
 
 ## APM agents

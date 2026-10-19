@@ -1,1 +1,0 @@
-None of these are available on JDK 17: compact object headers are a product flag from JDK 25, the AOT cache needs JDK 24 or later, virtual threads are final in 21. The tested range starts at 21, so verify on your build and plan an upgrade first.

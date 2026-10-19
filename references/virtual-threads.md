@@ -32,6 +32,9 @@ expected to cause few problems. [O] JEP-491
 - The JFR event `jdk.VirtualThreadPinned` reports a virtual thread parked while pinned; it is
   enabled by default with a 20 ms threshold. [O] JEP-444 The `jdk.tracePinnedThreads` system
   property from JEP 444 is removed by JEP 491, so do not rely on it on JDK 24+. [O] JEP-491
+- Some blocking operations (for example file I/O) cannot unmount on any release; the scheduler
+  compensates by temporarily exceeding its parallelism, up to
+  `jdk.virtualThreadScheduler.maxPoolSize`. [O] JEP-444
 - Check which JDK you run before reading older advice about `synchronized`; blog posts from the
   JDK 21-23 era describe pinning that no longer applies on 24+. [P]
 - Blocking JDBC and legacy client libraries that block inside `synchronized` are the usual
@@ -62,7 +65,7 @@ expected to cause few problems. [O] JEP-491
 
 - Thread dump with virtual threads: `jcmd <pid> Thread.dump_to_file -format=json <file>`
   (Tier 2, `command-safety.md`). [O] JEP-444 The `-format` option accepts `plain` or `json`.
-  [O] JAVA-JCMD25 JEP 444 states that traditional thread dumps are not extended to include
+  JEP 444 states that traditional thread dumps are not extended to include
   virtual threads, so `Thread.print` will not show them. [O] JEP-444
 - JFR: `jdk.VirtualThreadPinned` and `jdk.VirtualThreadSubmitFailed` (a start or unpark that
   failed, probably a resource issue) are enabled by default; `jdk.VirtualThreadStart` and

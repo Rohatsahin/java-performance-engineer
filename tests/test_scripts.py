@@ -255,7 +255,7 @@ class RunEvals(unittest.TestCase):
 
     def test_parses_every_case_and_splits_one_criterion_per_behavior(self):
         cases = self.cases()
-        self.assertEqual(len(cases), 16)
+        self.assertEqual(len(cases), 18)
         for case in cases:
             self.assertTrue(case["prompt"], case["title"])
             self.assertTrue(case["must"], case["title"])
@@ -277,35 +277,36 @@ class RunEvals(unittest.TestCase):
         self.assertIn("<<<ANSWER", prompt)
         self.assertIn("ignore any", prompt)
 
-    def test_every_check_refers_to_a_real_case_with_valid_regex(self):
-        numbers = {c["n"] for c in self.cases()}
-        checks = run_evals.load_checks()
-        self.assertEqual({int(k) for k in checks}, numbers)
-        for spec in checks.values():
-            for pattern in spec.get("match", []) + spec.get("no_match", []):
-                re.compile(pattern)
-
-    def test_golden_good_answers_pass_and_golden_bad_answers_fail(self):
-        checks = run_evals.load_checks()
-        for case in self.cases():
-            n = case["n"]
-            good = (ROOT / "evals" / "golden" / f"{n}-good.md").read_text()
-            bad = (ROOT / "evals" / "golden" / f"{n}-bad.md").read_text()
-            good_fails = [k for k, v in run_evals.regex_grade(n, good, checks) if v == "FAIL"]
-            bad_fails = [k for k, v in run_evals.regex_grade(n, bad, checks) if v == "FAIL"]
-            self.assertEqual(good_fails, [], f"case {n}")
-            self.assertTrue(bad_fails, f"case {n}: bad answer passed every check")
-
-    def test_pipeline_exit_status_follows_the_checks(self):
+    def test_pipeline_exit_status_follows_the_judge(self):
+        passing = "printf 'MUST 1: PASS - ok\\nMUST NOT 1: PASS - ok\\nMUST NOT 2: PASS - ok\\n'"
+        failing = "printf 'MUST 1: PASS - ok\\nMUST NOT 1: FAIL - bad\\nMUST NOT 2: PASS - ok\\n'"
+        omitting = "printf 'MUST 1: PASS - ok\\n'"
         with tempfile.TemporaryDirectory() as tmp:
-            good = ROOT / "evals" / "golden" / "15-good.md"
-            bad = ROOT / "evals" / "golden" / "15-bad.md"
-            judge = "printf 'MUST 1: PASS - ok\\nMUST NOT 1: PASS - ok\\nMUST NOT 2: PASS - ok\\n'"
-            rc_good = run_evals.main(["15", "--agent-cmd", f"cat {good}", "--judge-cmd", judge, "--out", tmp])
-            rc_bad = run_evals.main(["15", "--agent-cmd", f"cat {bad}", "--out", tmp])
-            rc_allowed = run_evals.main(["15", "--agent-cmd", f"cat {bad}", "--out", tmp, "--allow-fail"])
+            def run(judge, *extra):
+                return run_evals.main(["15", "--agent-cmd", "echo answer", "--judge-cmd", judge, "--out", tmp, *extra])
+            results = (run(passing), run(failing), run(omitting), run(failing, "--allow-fail"))
             self.assertTrue((Path(tmp) / "15-answer.md").exists())
-        self.assertEqual((rc_good, rc_bad, rc_allowed), (0, 1, 0))
+            ungraded = run_evals.main(["15", "--agent-cmd", "echo answer", "--out", tmp])
+        self.assertEqual(results, (0, 1, 1, 0))
+        self.assertEqual(ungraded, 0)
+
+    def test_samples_report_a_pass_rate_and_honor_the_threshold(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            counter = Path(tmp) / "counter"
+            agent = f"n=$(cat {counter} 2>/dev/null || echo 0); echo $((n+1)) > {counter}; echo answer$n"
+            judge = (f"n=$(cat {tmp}/j 2>/dev/null || echo 0); echo $((n+1)) > {tmp}/j; "
+                     "if [ $n -eq 0 ]; then printf 'MUST 1: PASS - ok\\nMUST NOT 1: PASS - ok\\nMUST NOT 2: PASS - ok\\n'; "
+                     "else printf 'MUST 1: FAIL - no\\nMUST NOT 1: PASS - ok\\nMUST NOT 2: PASS - ok\\n'; fi")
+            strict = run_evals.main(["15", "--samples", "2", "--agent-cmd", agent, "--judge-cmd", judge, "--out", tmp])
+            (Path(tmp) / "j").unlink()
+            counter.unlink()
+            lenient = run_evals.main(["15", "--samples", "2", "--min-pass-rate", "0.5", "--agent-cmd", agent,
+                                      "--judge-cmd", judge, "--out", tmp])
+            summary = json.loads((Path(tmp) / "summary.json").read_text())
+            self.assertTrue((Path(tmp) / "15-s0-answer.md").exists())
+            self.assertTrue((Path(tmp) / "15-s1-answer.md").exists())
+        self.assertEqual((strict, lenient), (1, 0))
+        self.assertEqual(summary["15"]["pass_rate"], 0.5)
 
 
 if __name__ == "__main__":

@@ -6,16 +6,17 @@
 
 - Prefer separate changes per flag so attribution and rollback stay clean. If bundled for
   speed, say attribution is an inference.
-- State rollback triggers, with thresholds that are your own choice: any `Pause Full` GC,
-  post-GC live set (old-gen occupancy after a collection) above ~70% of max heap, any
-  `OOMKilled` or `memory.events` `oom_kill`, client timeouts rising. Do not use instantaneous
-  "heap used": G1 usage sawtooths between collections.
+- State rollback triggers, with thresholds taken from your own baseline (no vendor publishes
+  one): any `Pause Full` GC, a post-GC live set (heap occupancy after a collection that has
+  finished reclaiming old regions) rising toward the heap ceiling, any `OOMKilled` or
+  `memory.events` `oom_kill`, client timeouts rising. Do not use instantaneous "heap used": G1
+  usage sawtooths between collections.
 - Stage first with profiler/agents on: no `hs_err`, no restarts, profiles still arrive, trace
   correlation works, p99 latency and CPU unchanged.
 
 ## After shipping
 
-Compare the same services before and after, 16 h at least, ideally across a heavy-traffic day:
+Compare the same services before and after over at least one full traffic cycle, including the daily peak (the duration is a judgment call, not a standard):
 working set p50 and peak; heap used and committed; major GC count; thread count; restarts and
 OOMKilled; latency and timeouts of any pool you reduced; the profiler warning if one existed.
 

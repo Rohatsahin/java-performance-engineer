@@ -64,7 +64,6 @@ version differs from the one noted. Last researched 2026-10.
 - `ASYNC-MODES` https://github.com/async-profiler/async-profiler/blob/master/docs/ProfilingModes.md
 - `JATTACH` https://github.com/jattach/jattach
 - `GREGG-USE` https://www.brendangregg.com/usemethod.html
-- `ARXIV-CO` (coordinated omission) https://arxiv.org/pdf/2405.11182
 
 ## Weak sources (anecdotal; single reports)
 
@@ -133,3 +132,14 @@ version differs from the one noted. Last researched 2026-10.
 - `K8S-LIFECYCLE` https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/
 - `JMH-SAMPLES` https://github.com/openjdk/jmh/blob/master/jmh-samples/src/main/java/org/openjdk/jmh/samples/JMHSample_35_Profilers.java
 - `K6-ARRIVAL` (open-model load, constant arrival rate) https://grafana.com/docs/k6/latest/using-k6/scenarios/executors/constant-arrival-rate/
+- `JEP-516` (AOT object caching with any GC, JDK 26) https://openjdk.org/jeps/516
+- `MS-JAVA-CONTAINERS` https://learn.microsoft.com/en-us/azure/developer/java/containers/overview
+- `PAKETO-JAVA` https://paketo.io/docs/reference/java-reference/
+- `DEP-AWS-SRC` https://raw.githubusercontent.com/aws/aws-sdk-java-v2/master/http-client-spi/src/main/java/software/amazon/awssdk/http/SdkHttpConfigurationOption.java
+- `DEP-JACKSON-2` https://raw.githubusercontent.com/FasterXML/jackson-core/2.19/src/main/java/com/fasterxml/jackson/core/util/JsonRecyclerPools.java
+- `DEP-JACKSON-3` https://raw.githubusercontent.com/FasterXML/jackson-core/3.0/src/main/java/tools/jackson/core/util/JsonRecyclerPools.java
+- `PGBOUNCER-CFG` https://www.pgbouncer.org/config.html
+- `JDK-OS-CPP` (`os::is_server_class_machine`, jdk-25-ga) https://raw.githubusercontent.com/openjdk/jdk/jdk-25-ga/src/hotspot/share/runtime/os.cpp
+- `K8S-HPA` https://kubernetes.io/docs/concepts/workloads/autoscaling/horizontal-pod-autoscale/
+- `K8S-HOOKS` https://kubernetes.io/docs/concepts/containers/container-lifecycle-hooks/
+- `KERNEL-BWC` https://docs.kernel.org/scheduler/sched-bwc.html

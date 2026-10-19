@@ -1,1 +1,0 @@
-Request changes. Do not approve. MALLOC_ARENA_MAX=1 from a blog is not evidence, the limit cut comes from an idle graph, and ten minutes on one pod is not an A/B. Ask for attribution, proof the flags are live, and rollback triggers.

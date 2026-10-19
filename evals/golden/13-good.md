@@ -1,1 +1,0 @@
-Check /proc/1/cmdline first: if sh is PID 1 it will not forward SIGTERM, so exec java or run it as PID 1. The liveness probe at 10 s kills a 45 s start: add a startup probe sized from the worst measured start. Endpoint removal races SIGTERM, so add a preStop sleep or drain within terminationGracePeriodSeconds. Verify with a rolling restart under load.

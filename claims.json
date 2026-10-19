@@ -8,7 +8,7 @@
    "file": "references/aot-and-footprint-flags.md",
    "phrase": "product flag, off by default (JEP 519)",
    "url": "https://openjdk.org/jeps/519",
-   "expect": "product feature",
+   "expect": "not a goal to make compact object headers be the default",
    "version": "JDK 25"
   },
   {
@@ -97,23 +97,23 @@
    "file": "references/container-memory.md",
    "phrase": "Guaranteed needs requests == limits",
    "url": "https://kubernetes.io/docs/concepts/workloads/pods/pod-qos/",
-   "expect": "Guaranteed",
+   "expect": "Every Container in the Pod must have a memory limit and a memory request",
    "version": "Kubernetes current"
   },
   {
    "id": "hikari-pool-sizing",
-   "text": "HikariCP pool sizing starting point is cores x 2 plus effective spindles.",
+   "text": "The HikariCP wiki quotes (cores x 2) + effective spindles as a starting heuristic, not a rule.",
    "tag": "O",
    "source_id": "FORM-HIKARI-POOL",
    "file": "references/formulas.md",
    "phrase": "effective_spindle_count",
    "url": "https://github.com/brettwooldridge/HikariCP/wiki/About-Pool-Sizing",
-   "expect": "spindle",
+   "expect": "((core_count * 2) + effective_spindle_count)",
    "version": "n/a"
   },
   {
    "id": "pg-connections",
-   "text": "PostgreSQL wiki gives the same pool sizing formula.",
+   "text": "The PostgreSQL wiki states the same heuristic (a pre-2014 page that says it may need adjustment).",
    "tag": "O",
    "source_id": "FORM-PG-CONNS",
    "file": "references/formulas.md",
@@ -152,7 +152,7 @@
    "file": "references/dependency-tuning.md",
    "phrase": "Apache5",
    "url": "https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/http-configuration.html",
-   "expect": "Apache",
+   "expect": "replaced ApacheHttpClient as the default synchronous client",
    "version": "SDK 2.46+"
   },
   {
@@ -362,6 +362,314 @@
    "url": "https://grafana.com/docs/k6/latest/using-k6/scenarios/executors/constant-arrival-rate/",
    "expect": "constant-arrival-rate",
    "version": "k6 current"
+  },
+  {
+   "id": "spring-graceful-default",
+   "text": "Graceful shutdown is enabled by default with Jetty, Reactor Netty and Tomcat.",
+   "tag": "O",
+   "source_id": "SPRING-GRACEFUL",
+   "file": "addons/spring-boot.md",
+   "phrase": "SmartLifecycle beans",
+   "url": "https://docs.spring.io/spring-boot/reference/web/graceful-shutdown.html",
+   "expect": "Graceful shutdown is enabled by default with all three embedded web servers",
+   "version": "Spring Boot current docs"
+  },
+  {
+   "id": "spring-shutdown-timeout-30s",
+   "text": "spring.lifecycle.timeout-per-shutdown-phase defaults to 30s and applies per SmartLifecycle phase.",
+   "tag": "O",
+   "source_id": "SPRING-PROPS-40",
+   "file": "addons/spring-boot.md",
+   "phrase": "`spring.lifecycle.timeout-per-shutdown-phase` | `30s`",
+   "url": "https://docs.spring.io/spring-boot/4.0/appendix/application-properties/index.html",
+   "expect": "Timeout for the shutdown of any phase (group of SmartLifecycle beans with the same 'phase' value)",
+   "version": "Spring Boot 4.0"
+  },
+  {
+   "id": "spring-liveness-no-external",
+   "text": "The liveness probe should not depend on health checks for external systems.",
+   "tag": "O",
+   "source_id": "SPRING-ACT-35",
+   "file": "addons/spring-boot.md",
+   "phrase": "should not depend on health checks for external systems",
+   "url": "https://docs.spring.io/spring-boot/3.5/reference/actuator/endpoints.html",
+   "expect": "Kubernetes might restart all application instances and create cascading failures",
+   "version": "Spring Boot 3.5"
+  },
+  {
+   "id": "spring-probes-3-5-k8s-only",
+   "text": "In 3.5 the probe health groups are automatically enabled only in a Kubernetes environment.",
+   "tag": "O",
+   "source_id": "SPRING-ACT-35",
+   "file": "addons/spring-boot.md",
+   "phrase": "auto-enabled only when running in a Kubernetes environment",
+   "url": "https://docs.spring.io/spring-boot/3.5/reference/actuator/endpoints.html",
+   "expect": "These health groups are automatically enabled only if the application",
+   "version": "Spring Boot 3.5"
+  },
+  {
+   "id": "spring-probes-4-0-default-true",
+   "text": "In 4.0 management.endpoint.health.probes.enabled defaults to true.",
+   "tag": "O",
+   "source_id": "SPRING-PROPS-40",
+   "file": "addons/spring-boot.md",
+   "phrase": "`false` in 3.5, `true` in 4.0",
+   "url": "https://docs.spring.io/spring-boot/4.0/appendix/application-properties/index.html",
+   "expect": "Whether to enable liveness and readiness probes.",
+   "version": "Spring Boot 4.0"
+  },
+  {
+   "id": "spring-cds-aot-recommended",
+   "text": "Boot supports both CDS and AOT cache and recommends the AOT cache whenever possible.",
+   "tag": "O",
+   "source_id": "SPRING-CDS-35",
+   "file": "addons/spring-boot.md",
+   "phrase": "supports both CDS and AOT cache",
+   "url": "https://docs.spring.io/spring-boot/3.5/reference/packaging/class-data-sharing.html",
+   "expect": "we recommend using the AOT cache whenever possible",
+   "version": "Spring Boot 3.5"
+  },
+  {
+   "id": "spring-open-in-view-default",
+   "text": "spring.jpa.open-in-view defaults to true and binds an EntityManager for the whole request.",
+   "tag": "O",
+   "source_id": "SPRING-PROPS-40",
+   "file": "addons/spring-boot.md",
+   "phrase": "binds a JPA EntityManager",
+   "url": "https://docs.spring.io/spring-boot/4.0/appendix/application-properties/index.html",
+   "expect": "Binds a JPA EntityManager to the thread for the entire processing of the request.",
+   "version": "Spring Boot 4.0"
+  },
+  {
+   "id": "spring-virtual-threads-pools",
+   "text": "With virtual threads enabled, properties that configure thread pools have no effect.",
+   "tag": "O",
+   "source_id": "SPRING-APP-35",
+   "file": "addons/spring-boot.md",
+   "phrase": "properties which configure thread pools don't have an effect anymore",
+   "url": "https://docs.spring.io/spring-boot/3.5/reference/features/spring-application.html",
+   "expect": "properties which configure thread pools don't have an effect anymore",
+   "version": "Spring Boot 3.5"
+  },
+  {
+   "id": "spring-virtual-keepalive",
+   "text": "Virtual threads are daemon threads, so the docs recommend spring.main.keep-alive=true.",
+   "tag": "O",
+   "source_id": "SPRING-APP-35",
+   "file": "addons/spring-boot.md",
+   "phrase": "recommend `spring.main.keep-alive=true`",
+   "url": "https://docs.spring.io/spring-boot/3.5/reference/features/spring-application.html",
+   "expect": "it is recommended to set the property `spring.main.keep-alive` to `true`",
+   "version": "Spring Boot 3.5"
+  },
+  {
+   "id": "spring-lazy-heap",
+   "text": "The heap must fit all beans; size the heap before enabling lazy initialization.",
+   "tag": "O",
+   "source_id": "SPRING-APP-35",
+   "file": "addons/spring-boot.md",
+   "phrase": "the heap must fit all beans",
+   "url": "https://docs.spring.io/spring-boot/3.5/reference/features/spring-application.html",
+   "expect": "fine-tuning of the JVM's heap size is done before enabling lazy initialization",
+   "version": "Spring Boot 3.5"
+  },
+  {
+   "id": "kco-default-parallelism",
+   "text": "Dispatchers.Default is backed by a shared pool whose maximum thread count defaults to the CPU core count, at least two.",
+   "tag": "O",
+   "source_id": "KCO-DEFAULT",
+   "file": "addons/kotlin-coroutines.md",
+   "phrase": "by default the maximum number",
+   "url": "https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/-dispatchers/-default.html",
+   "expect": "equal to the number of CPU cores, but is at least two",
+   "version": "kotlinx.coroutines 1.11.0"
+  },
+  {
+   "id": "kco-io-parallelism-default",
+   "text": "Dispatchers.IO parallelism is set by kotlinx.coroutines.io.parallelism and defaults to max(64, cores).",
+   "tag": "O",
+   "source_id": "KOTLIN-DISPATCHERS",
+   "file": "addons/kotlin-coroutines.md",
+   "phrase": "kotlinx.coroutines.io.parallelism",
+   "url": "https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/-dispatchers/-i-o.html",
+   "expect": "It defaults to the limit of 64 threads or the number of cores (whichever is larger)",
+   "version": "kotlinx.coroutines 1.11.0"
+  },
+  {
+   "id": "kco-io-views-elastic",
+   "text": "Views of Dispatchers.IO from limitedParallelism are not restricted by the IO parallelism.",
+   "tag": "O",
+   "source_id": "KOTLIN-DISPATCHERS",
+   "file": "addons/kotlin-coroutines.md",
+   "phrase": "Dispatchers.IO.limitedParallelism(n)",
+   "url": "https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/-dispatchers/-i-o.html",
+   "expect": "are not restricted by the Dispatchers.IO parallelism",
+   "version": "kotlinx.coroutines 1.11.0"
+  },
+  {
+   "id": "kco-io-default-share-threads",
+   "text": "Dispatchers.IO and Default share threads; withContext(IO) from Default typically does not switch threads.",
+   "tag": "O",
+   "source_id": "KOTLIN-DISPATCHERS",
+   "file": "addons/kotlin-coroutines.md",
+   "phrase": "IO and Default share threads",
+   "url": "https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/-dispatchers/-i-o.html",
+   "expect": "typically does not lead to an actual switching to another thread",
+   "version": "kotlinx.coroutines 1.11.0"
+  },
+  {
+   "id": "kco-limited-not-mutex",
+   "text": "limitedParallelism limits parallel execution, not concurrency; it is not a mutex.",
+   "tag": "O",
+   "source_id": "KCO-LIMITED",
+   "file": "addons/kotlin-coroutines.md",
+   "phrase": "\"It is not a mutex!\"",
+   "url": "https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/-coroutine-dispatcher/limited-parallelism.html",
+   "expect": "does not limit how many coroutines execute concurrently",
+   "version": "kotlinx.coroutines 1.11.0"
+  },
+  {
+   "id": "kco-core-pool-size-default",
+   "text": "kotlinx.coroutines.scheduler.core.pool.size defaults to AVAILABLE_PROCESSORS coerced to at least 2.",
+   "tag": "O",
+   "source_id": "KCO-TASKS",
+   "file": "addons/kotlin-coroutines.md",
+   "phrase": "AVAILABLE_PROCESSORS.coerceAtLeast(2)",
+   "url": "https://raw.githubusercontent.com/Kotlin/kotlinx.coroutines/1.11.0/kotlinx-coroutines-core/jvm/src/scheduling/Tasks.kt",
+   "expect": "AVAILABLE_PROCESSORS.coerceAtLeast(2)",
+   "version": "kotlinx.coroutines 1.11.0"
+  },
+  {
+   "id": "kco-runblocking-suspend",
+   "text": "Calling runBlocking from a suspend function is redundant and can cause thread starvation.",
+   "tag": "O",
+   "source_id": "KCO-RUNBLOCKING",
+   "file": "addons/kotlin-coroutines.md",
+   "phrase": "risks \"thread starvation\"",
+   "url": "https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/run-blocking.html",
+   "expect": "potentially leading to thread starvation issues",
+   "version": "kotlinx.coroutines 1.11.0"
+  },
+  {
+   "id": "kco-withtimeout-cooperative",
+   "text": "withTimeout does not stop code that does not check for cancellation; use runInterruptible for blocking JVM code.",
+   "tag": "O",
+   "source_id": "KCO-TIMEOUT",
+   "file": "addons/kotlin-coroutines.md",
+   "phrase": "withTimeout will not automatically stop all code inside it",
+   "url": "https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/with-timeout.html",
+   "expect": "use the runInterruptible function to propagate cancellations to blocking JVM code",
+   "version": "kotlinx.coroutines 1.11.0"
+  },
+  {
+   "id": "kco-channel-default-buffer",
+   "text": "Channel.BUFFERED default capacity is 64, overridable on the JVM with kotlinx.coroutines.channels.defaultBuffer.",
+   "tag": "O",
+   "source_id": "KCO-CHANNEL-SRC",
+   "file": "addons/kotlin-coroutines.md",
+   "phrase": "kotlinx.coroutines.channels.defaultBuffer",
+   "url": "https://raw.githubusercontent.com/Kotlin/kotlinx.coroutines/1.11.0/kotlinx-coroutines-core/common/src/channels/Channel.kt",
+   "expect": "DEFAULT_BUFFER_PROPERTY_NAME",
+   "version": "kotlinx.coroutines 1.11.0"
+  },
+  {
+   "id": "k8s-eviction-not-by-qos",
+   "text": "Kubelet eviction does not use the QoS class to order eviction.",
+   "tag": "O",
+   "source_id": "K8S-EVICT",
+   "file": "references/container-memory.md",
+   "phrase": "Kubelet eviction does not rank by QoS class",
+   "url": "https://kubernetes.io/docs/concepts/scheduling-eviction/node-pressure-eviction/",
+   "expect": "The kubelet does not use the pod's QoS class to determine the eviction order",
+   "version": "Kubernetes current"
+  },
+  {
+   "id": "k8s-oom-score-adj-qos",
+   "text": "The kernel OOM killer uses an oom_score_adj the kubelet sets from the QoS class.",
+   "tag": "O",
+   "source_id": "K8S-EVICT",
+   "file": "references/container-memory.md",
+   "phrase": "`oom_score_adj` (Guaranteed -997, BestEffort 1000)",
+   "url": "https://kubernetes.io/docs/concepts/scheduling-eviction/node-pressure-eviction/",
+   "expect": "The kubelet sets an oom_score_adj value for each container based on the QoS for the pod",
+   "version": "Kubernetes current"
+  },
+  {
+   "id": "k8s-memory-available-excludes-inactive-file",
+   "text": "The kubelet excludes inactive_file from the working-set calculation for memory.available.",
+   "tag": "O",
+   "source_id": "K8S-EVICT",
+   "file": "references/memory-model.md",
+   "phrase": "working set excludes inactive file memory",
+   "url": "https://kubernetes.io/docs/concepts/scheduling-eviction/node-pressure-eviction/",
+   "expect": "The kubelet excludes inactive_file",
+   "version": "Kubernetes current"
+  },
+  {
+   "id": "paketo-heap-formula",
+   "text": "The Paketo Java buildpack computes heap as total container memory minus non-heap minus headroom.",
+   "tag": "O",
+   "source_id": "PAKETO-JAVA",
+   "file": "references/formulas.md",
+   "phrase": "heap = total container memory -",
+   "url": "https://paketo.io/docs/reference/java-reference/",
+   "expect": "Heap = Total Container Memory - Non-Heap - Headroom",
+   "version": "Paketo Java buildpack current"
+  },
+  {
+   "id": "ms-heap-75-percent",
+   "text": "Microsoft's container guide recommends 75% of container memory for the JVM heap and never setting it equal to container memory.",
+   "tag": "O",
+   "source_id": "MS-JAVA-CONTAINERS",
+   "file": "references/container-memory.md",
+   "phrase": "allocate 75% of container memory to the heap",
+   "url": "https://learn.microsoft.com/en-us/azure/developer/java/containers/overview",
+   "expect": "Allocate 75% of container memory for the JVM heap",
+   "version": "Microsoft Learn 2026-06"
+  },
+  {
+   "id": "jep-516-any-gc",
+   "text": "JEP 516 lets the AOT cache work with any GC via a streamable object format.",
+   "tag": "O",
+   "source_id": "JEP-516",
+   "file": "references/aot-and-footprint-flags.md",
+   "phrase": "-XX:+AOTStreamableObjects",
+   "url": "https://openjdk.org/jeps/516",
+   "expect": "-XX:+AOTStreamableObjects",
+   "version": "JDK 26"
+  },
+  {
+   "id": "jackson-3-default-pool",
+   "text": "Jackson 3 JsonRecyclerPools.defaultPool() is a ConcurrentDequePool.",
+   "tag": "O",
+   "source_id": "DEP-JACKSON-3",
+   "file": "references/dependency-tuning.md",
+   "phrase": "ConcurrentDequePool",
+   "url": "https://raw.githubusercontent.com/FasterXML/jackson-core/3.0/src/main/java/tools/jackson/core/util/JsonRecyclerPools.java",
+   "expect": "return newConcurrentDequePool();",
+   "version": "Jackson 3.0"
+  },
+  {
+   "id": "jackson-2-default-pool",
+   "text": "Jackson 2.19 JsonRecyclerPools.defaultPool() is the ThreadLocal pool.",
+   "tag": "O",
+   "source_id": "DEP-JACKSON-2",
+   "file": "references/dependency-tuning.md",
+   "phrase": "`ThreadLocal`-based",
+   "url": "https://raw.githubusercontent.com/FasterXML/jackson-core/2.19/src/main/java/com/fasterxml/jackson/core/util/JsonRecyclerPools.java",
+   "expect": "return threadLocalPool();",
+   "version": "Jackson 2.19"
+  },
+  {
+   "id": "jdk-server-class-smt",
+   "text": "HotSpot's is_server_class_machine also divides active processors by a CPU-reported logical-processor count before requiring 2.",
+   "tag": "O",
+   "source_id": "JDK-OS-CPP",
+   "file": "references/gc-cpu-threads.md",
+   "phrase": "`os::is_server_class_machine`",
+   "url": "https://raw.githubusercontent.com/openjdk/jdk/jdk-25-ga/src/hotspot/share/runtime/os.cpp",
+   "expect": "VM_Version::logical_processors_per_package()",
+   "version": "JDK 25"
   }
  ]
 }

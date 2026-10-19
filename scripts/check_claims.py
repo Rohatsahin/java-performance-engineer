@@ -23,8 +23,8 @@ REQUIRED = ("id", "text", "tag", "source_id", "file", "phrase")
 
 
 def defined_source_ids(root):
-    text = (root / "references" / "sources.md").read_text()
-    return set(re.findall(r"^- `([^`]+)`", text, flags=re.M))
+    files = [root / "references" / "sources.md", *sorted((root / "addons").glob("*.md"))]
+    return {sid for f in files for sid in re.findall(r"^- `([^`]+)`", f.read_text(), flags=re.M)}
 
 
 def check_offline(claims, root):
@@ -59,7 +59,8 @@ def normalize(text):
         text = re.sub(r"<(script|style)\b.*?</\1>", " ", text, flags=re.S | re.I)
         text = re.sub(r"<[^>]+>", " ", text)
         text = html.unescape(text)
-    return " ".join(text.replace("\xa0", " ").split()).lower()
+    text = text.replace("\xa0", " ").replace("\u2019", "'").replace("\u2018", "'").replace("`", "")
+    return " ".join(text.split()).lower()
 
 
 def fetch(url, timeout=20):

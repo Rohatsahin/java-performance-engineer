@@ -51,6 +51,8 @@ JAVA-JCMD25
 
 ## Rules for the assistant
 
+0. Never present `GC.class_histogram` or a heap dump as a free or cheap alternative: both are High impact (Tier 3).
+
 1. State the tier next to every command you propose when it is 2 or 3.
 2. Prefer data that already exists (metrics, logs, `memory.events`, `lastState`, GC logs)
    before running anything on the process.

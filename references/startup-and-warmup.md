@@ -42,8 +42,9 @@ incidents are traffic arriving before warm-up, or probes killing a slow start.
    Evaluate against your workload with the same A/B discipline; do not adopt for startup
    alone if the AOT cache meets the budget.
 5. **Measure throttling during the start window** (`cpu.stat`, `nr_throttled`). Warm-up
-   compiles in parallel and hits a CPU quota first, so if the start is throttled the limit (or
-   a start-time CPU boost where your Kubernetes version supports one [U]) is the lever; if it
+   compiles in parallel and hits a CPU quota first, so if the start is throttled the limit is
+   the lever (raising CPU after start needs in-place pod resize driven by a controller; core
+   Kubernetes has no built-in startup boost [U]); if it
    is not throttled, more CPU will not help. [P]
 
 ## 4. Autoscaling interaction
@@ -52,8 +53,11 @@ incidents are traffic arriving before warm-up, or probes killing a slow start.
   depth, in-flight requests) and keep a minimum headroom, or new pods arrive after the
   burst. [P]
 - CPU-based autoscalers read startup CPU (class loading, compilation) as load and can
-  over-scale. The Horizontal Pod Autoscaler has settings for an initial readiness and CPU
-  initialization window; check your cluster's values and your autoscaler's equivalent. [U]
+  over-scale. The Horizontal Pod Autoscaler sets aside
+  CPU samples from pods that are not ready and from the first ready transition within its
+  CPU initialization period (default 5 minutes), with a 30 s initial readiness delay; these
+  are kube-controller-manager flags that managed clusters may not expose. If startup CPU lasts
+  longer, gate readiness on the end of the spike. [O] K8S-HPA
 - CPU requests and limits shape both start time and throttling (`gc-cpu-threads.md`
   section 4).
 
@@ -72,9 +76,11 @@ incidents are traffic arriving before warm-up, or probes killing a slow start.
   the shell as PID 1; the shell then does not forward SIGTERM and every stop becomes a kill
   after the grace period. Whether `sh -c 'java ...'` execs the JVM depends on the shell, so
   check instead of assuming: `cat /proc/1/cmdline`. [P] A JVM that handles SIGTERM exits with
-  status 143 (128 + 15). [P]
-- A `sleep` in `preStop` needs a `sleep` binary in the image; newer Kubernetes versions have a
-  native sleep action for `preStop` (check your version). [U]
+  status 143 (128 + the signal number). [P]
+- For a drain delay, prefer the native `preStop` sleep action (`lifecycle.preStop.sleep`): the
+  kubelet runs it, so the image needs no `sleep` binary. It reached beta in Kubernetes 1.30 and
+  is stable in 1.34; on older clusters use an exec `sleep`. [O] K8S-HOOKS Confirm against your
+  cluster version.
 - Set `terminationGracePeriodSeconds` above drain time plus the longest in-flight request,
   and test it with a rolling restart under load (`rollout-and-rollback.md`).
 - Frameworks have graceful-shutdown settings; verify they are on and that their timeout is

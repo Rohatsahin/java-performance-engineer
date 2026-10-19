@@ -59,9 +59,11 @@ Limits:       n, soak, idle vs peak, JDK build, glibc, Kubernetes version, as-of
   (`references/symptom-triage.md`).
 - Do not size limits or requests from idle numbers; measure peaks under real traffic.
 - Before raising a heap ceiling or a limit, state the evidence that would justify it: a Java
-  heap `OutOfMemoryError`, `Pause Full` or a post-GC live set above roughly 70% of max heap
-  (your own threshold), together with a measured non-heap peak that leaves headroom inside the
-  limit. Without that evidence, a larger heap only moves or enlarges the kill point.
+  heap `OutOfMemoryError`, `Pause Full`, or a post-GC live set so high that collections run
+  back to back, together with a measured non-heap peak that leaves headroom inside the limit.
+  Oracle's floor is live data plus some slack (10-20% or more); any tighter threshold is your
+  own, so state it and its basis. Without evidence, a larger heap only moves or enlarges the
+  kill point.
 - Version-bound facts (defaults, JEP behavior, flag names) are claims about a build: say so,
   and have the human confirm them on the actual release with `java -XX:+PrintFlagsFinal -version`
   and the version matrix before acting.
@@ -104,6 +106,7 @@ containers (`references/container-memory.md`).
 | Add/remove a flag; AOT/CDS, compact headers, allocators | `references/flag-catalog.md`, `references/aot-and-footprint-flags.md` |
 | GC choice, CPU limits and throttling, thread counts | `references/gc-cpu-threads.md` |
 | Redisson, Netty, gRPC, Tomcat, Hikari/PostgreSQL, AWS SDK, Jackson | `references/dependency-tuning.md` |
+| Spring Boot, Kotlin coroutines (optional add-ons) | `addons/spring-boot.md`, `addons/kotlin-coroutines.md` |
 | Datadog agent/profiler behavior | `addons/datadog.md` |
 | Pool/thread/memory sizing arithmetic, Little's Law, profiler warning, statistics | `references/formulas.md` |
 | Profiling, load tests, benchmarking pitfalls | `references/profiling-and-load.md` |

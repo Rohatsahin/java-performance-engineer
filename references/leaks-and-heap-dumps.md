@@ -26,8 +26,9 @@ climbs": G1 usage sawtooths between collections.
 1. Metrics and logs that already exist: live-set trend, allocation rate, GC logs, per-type
    request counts. No new load on the process.
 2. JFR with `jdk.OldObjectSample` (old-object sampling, optionally with the path to GC roots)
-   for the suspect window; bounded duration and size (Tier 1/2). [U] Check event availability
-   and settings with `jfr summary`; path-to-GC-roots collection costs more than plain sampling.
+   for the suspect window; bounded duration and size (Tier 1/2). The event is in the JDK's
+   `default` and `profile` JFR settings since JDK 21; path-to-GC-root collection is off by
+   default and costs more, so enable it only for the suspect window. [O] JFR-META
 3. Allocation profiling (async-profiler `alloc`, `profiling-and-load.md`) shows who allocates,
    not who retains; use it to narrow candidates. [O] ASYNC-MODES
 4. Two `GC.class_histogram` snapshots hours apart on **one** pod (Tier 3: the man page rates it
@@ -48,8 +49,10 @@ climbs": G1 usage sawtooths between collections.
 - Pressure: do not dump a pod that is near its memory limit or being OOM-killed; the dump can
   tip it over. Route traffic away first, or dump a sibling that shows the same growth. [P]
 - Automatic dump: `-XX:+HeapDumpOnOutOfMemoryError` fires only for OutOfMemoryError caused by
-  Java heap exhaustion; it does not fire for OOMEs the JVM throws for other resource
-  exhaustion such as native thread creation, and never for a kernel kill. [O] JAVA-MAN25
+  Java heap exhaustion; the JDK 25 man page says it does not fire for OOMEs the JVM throws for
+  other resource exhaustion such as native thread creation, and it never fires for a kernel
+  kill. [O] JAVA-MAN25 The JDK 21 man page lacks that sentence and HotSpot source also dumps on a
+  Metaspace OOME, so verify the trigger with a test OOME on your JDK.
   Combine it with `ExitOnOutOfMemoryError` so a wedged JVM restarts (`container-memory.md`).
 - Privacy: dumps contain user data and secrets. Restrict access, do not attach them to
   tickets, delete after analysis. [P]

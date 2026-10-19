@@ -36,7 +36,7 @@ with and without `-javaagent`, using NMT and `Thread.print | grep dd-`. Profiler
    `perf_event_paranoid`; live-heap profiling is on by default on Linux since dd-trace-java
    1.61.0 (disable with `DD_PROFILING_HEAP_ENABLED=false`); the native engine needs JDK
    11.0.23+/17.0.11+/21.0.3+/22+, else JFR `OldObjectSample`; profile data is written to
-   `/tmp`, so request ~100 MB ephemeral storage. The docs give no native-memory overhead
+   `/tmp`; Datadog advises a small ephemeral-storage request (its example is 100MB) so the pod is not evicted first under node disk pressure, so size it from your observed `/tmp` use. The docs give no native-memory overhead
    figure; A/B with `-Ddd.profiling.enabled=false` and compare RSS and NMT.
 
 ## Sources

@@ -8,7 +8,7 @@ Tags and source IDs are defined in `sources.md`. Collector basics and G1 knobs a
 ## 1. Prove the GC is the cause
 
 0. Confirm which collector is actually running: `jcmd <pid> VM.flags` or the GC log header.
-   Before JDK 27 a JVM that sees fewer than 2 CPUs or less than 1792 MB selects Serial unless
+   Before JDK 27 a JVM that sees fewer than 2 CPUs (or, on some x86 hosts, too few after the SMT adjustment in `gc-cpu-threads.md` section 1) or less than 1792 MB selects Serial unless
    a collector is pinned, so "we run G1" under a 1 CPU limit needs checking; JDK 27 always
    selects G1 (JEP 523). [O] JEP-523 and `gc-cpu-threads.md` section 1
 1. Log GC and safepoints (`gc-cpu-threads.md` section 2). Without a log, add it and wait for a
@@ -19,7 +19,8 @@ Tags and source IDs are defined in `sources.md`. Collector basics and G1 knobs a
    work, and no collector flag fixes it. [P]
 4. Check `cpu.stat` throttling over the same window (`gc-cpu-threads.md` section 4). GC
    worker threads can burn a CPU quota and look like a pause problem. [P]
-5. Read the CPU line of each pause in the GC log (`gc+cpu`, included in `-Xlog:gc*`):
+5. Read the CPU line of each stop-the-world pause in the GC log (`gc+cpu`, included in
+   `-Xlog:gc*`; printed by G1, Parallel and Serial, so do not expect it from ZGC):
    `User`, `Sys` and `Real`. `Real` far above `User+Sys` means the GC threads were not
    scheduled (CPU starvation or throttling); `Sys` above `User` points to the kernel: memory
    reclaim, page faults, swap, or slow log I/O. `Real` at or below `User+Sys` with parallel
@@ -57,8 +58,8 @@ section 3)
   footprint and throughput observations differ across the supported range; record the JDK.
 - `SoftMaxHeapSize` (ZGC): a soft limit; ZGC tries to stay below it but may grow to the
   maximum heap rather than stall the application. [O] ZGC-WIKI Use it to keep steady-state
-  footprint low while leaving burst headroom. Applicability to other collectors: not
-  verified. [U]
+  footprint low while leaving burst headroom. It is a manageable flag introduced for
+  ZGC in JDK 13; do not assume G1 honors it, and test the effect on your collector. [P]
 - Shenandoah: generational mode is a product feature from JDK 25 (JEP 521), enabled with
   `-XX:+UseShenandoahGC -XX:ShenandoahGCMode=generational`; the default remains the
   single-generation mode. [O] JEP-521 Availability depends on the JDK vendor build. [U]

@@ -10,15 +10,16 @@ intuition.
 
 1. Pick the metric (p99, CPU per request, allocation per request) and the load that shows it.
 2. CPU: async-profiler `cpu` or JFR. JDK 25 adds JFR CPU-time sampling on Linux only
-   (event `jdk.CPUTimeSample`, experimental and disabled by default). [O] JEP-509 Wall-clock mode shows blocked
+   (event `jdk.CPUTimeSample`, experimental and disabled by default; status verified for JDK 25 only). [O] JEP-509 Wall-clock mode shows blocked
    time that CPU mode hides (`profiling-and-load.md`). [O] ASYNC-MODES
 3. Allocation: async-profiler `alloc` or JFR allocation sampling. Per-request bytes allocated
    is the number to track. [P]
 4. Lock contention: async-profiler `lock`; contended monitors and queues show as wide frames
    in wall mode. [O] ASYNC-MODES
-5. For accurate line attribution, async-profiler recommends
-   `-XX:+UnlockDiagnosticVMOptions -XX:+DebugNonSafepoints`; in containers see the
-   `perf_event` notes in `profiling-and-load.md`. [P]
+5. If the profiler is attached at runtime, start the JVM with
+   `-XX:+UnlockDiagnosticVMOptions -XX:+DebugNonSafepoints`; without it simple inlined methods
+   may be missing from profiles. [O] ASYNC-TROUBLESHOOT In containers see the `perf_event`
+   notes in `profiling-and-load.md`.
 6. Read the flame graph by width (share of samples), top-down from the entry point; ignore
    narrow towers. [P]
 
@@ -42,8 +43,8 @@ your profile. [P]
 
 - **JMH** for the changed code in isolation: use forks, warm-up, consume results with a
   `Blackhole`, and avoid constant-folded inputs. `-prof gc` reports allocation rate and GC
-  churn per operation, `-prof stack` samples hot methods, `-prof comp` shows whether compilation
-  overlaps measurement. [O] JMH-SAMPLES
+  churn per operation (`gc.alloc.rate.norm`, bytes per operation), and `-prof stack` is a
+  sampling profiler that can miss quickly executing methods. [O] JMH-SAMPLES
 - JMH does not model GC pacing, throttling, queues or network; confirm in a load test and in
   production (`profiling-and-load.md`, `rollout-and-rollback.md`).
 - Compare the same service before and after: latency percentiles, CPU per request, allocation

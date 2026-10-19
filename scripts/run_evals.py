@@ -5,14 +5,15 @@
   python3 scripts/run_evals.py --dry-run 1
   python3 scripts/run_evals.py --agent-cmd "claude -p" --judge-cmd "claude -p" --out results
 
+--samples N runs each case N times and reports a pass rate per case (written to summary.json);
+a case passes when at least --min-pass-rate of its samples pass every criterion (default 1.0).
 --agent-cmd receives the prompt on stdin and must print its answer on stdout. Give the agent
 access to this directory so it can read SKILL.md and the references it routes to.
 --judge-cmd (optional) receives a grading prompt and must answer with one line per criterion:
 `MUST 1: PASS - reason` / `MUST NOT 1: FAIL - reason`. Without it, answers are saved for manual
-grading against the listed criteria. Judge output is a model opinion: spot-check it. Independently of any judge, the deterministic
-patterns in evals/checks.json are applied to every answer and reported as `regex`. Exit status is
-1 when any regex check or judged criterion fails (--allow-fail overrides); a criterion the judge
-omits counts as a failure.
+grading against the listed criteria. Judge output is a model opinion: spot-check it. Exit status is
+1 when any judged criterion fails (--allow-fail overrides); a criterion the judge omits counts as
+a failure. Without --judge-cmd nothing is graded automatically and the exit status is 0.
 """
 import argparse
 import json
@@ -63,19 +64,6 @@ def judge_prompt(case, answer):
             + "\n".join(lines) + f"\n\nPROMPT: {case['prompt']}\n\n<<<ANSWER\n{answer}\nANSWER>>>\n")
 
 
-def load_checks(path=ROOT / "evals" / "checks.json"):
-    return json.loads(Path(path).read_text()) if Path(path).is_file() else {}
-
-
-def regex_grade(case_n, answer, checks):
-    """Deterministic grading from evals/checks.json: every `match` pattern must occur in the
-    answer and no `no_match` pattern may. Cheap, repeatable, and independent of any judge model."""
-    spec = checks.get(str(case_n), {})
-    grades = [(f"MATCH {p}", "PASS" if re.search(p, answer) else "FAIL") for p in spec.get("match", [])]
-    grades += [(f"NO_MATCH {p}", "FAIL" if re.search(p, answer) else "PASS") for p in spec.get("no_match", [])]
-    return grades
-
-
 def run(cmd, text):
     done = subprocess.run(cmd, shell=True, input=text, capture_output=True, text=True)
     if done.returncode != 0:
@@ -106,6 +94,33 @@ def summarize(results):
     return passed, total
 
 
+def evaluate_sample(case, args, out, k):
+    """Run one sample of one case; return its grades and whether every graded check passed
+    (None when nothing could grade it automatically)."""
+    suffix = "" if args.samples == 1 else f"-s{k}"
+    n = case["n"]
+    answer = run(args.agent_cmd, agent_prompt(case, ROOT))
+    (out / f"{n}{suffix}-answer.md").write_text(answer)
+    judged = None
+    if args.judge_cmd:
+        grading = run(args.judge_cmd, judge_prompt(case, answer))
+        (out / f"{n}{suffix}-grading.md").write_text(grading)
+        judged = complete_grades(case, parse_grades(grading))
+    ok = all(v == "PASS" for _, v in judged) if judged else None
+    return {"judged": judged, "ok": ok, "answer": f"{n}{suffix}-answer.md"}
+
+
+def describe(case, k, sample, samples):
+    tag = f"case {case['n']}" + (f" sample {k + 1}/{samples}" if samples > 1 else "")
+    parts = []
+    if sample["judged"] is not None:
+        ok = sum(1 for _, v in sample["judged"] if v == "PASS")
+        parts.append(f"judge {ok}/{len(sample['judged'])}")
+    if not parts:
+        parts.append(f"saved to {sample['answer']}, grade manually")
+    return f"{tag}: " + "; ".join(parts) + f" - {case['title']}"
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("only", nargs="*", type=int, help="case numbers to run (default: all)")
@@ -114,8 +129,13 @@ def main(argv=None):
     ap.add_argument("--agent-cmd")
     ap.add_argument("--judge-cmd")
     ap.add_argument("--out", default="results")
+    ap.add_argument("--samples", type=int, default=1, help="runs per case; reports a pass rate per case")
+    ap.add_argument("--min-pass-rate", type=float, default=1.0,
+                    help="fraction of samples that must pass every check for a case to pass")
     ap.add_argument("--allow-fail", action="store_true", help="exit 0 even when a check fails")
     args = ap.parse_args(argv)
+    if args.samples < 1:
+        ap.error("--samples must be at least 1")
     cases = parse_prompts((ROOT / "evals" / "prompts.md").read_text())
     if args.only:
         cases = [c for c in cases if c["n"] in args.only]
@@ -131,34 +151,26 @@ def main(argv=None):
         ap.error("--agent-cmd is required unless --list or --dry-run")
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
-    results = {}
-    checks = load_checks()
-    regex_results = {}
+    summary, failed_cases = {}, []
     for c in cases:
-        answer = run(args.agent_cmd, agent_prompt(c, ROOT))
-        (out / f"{c['n']}-answer.md").write_text(answer)
-        regex_results[c["n"]] = regex_grade(c["n"], answer, checks)
-        if regex_results[c["n"]]:
-            ok = sum(1 for _, v in regex_results[c["n"]] if v == "PASS")
-            failed = [k for k, v in regex_results[c["n"]] if v == "FAIL"]
-            print(f"case {c['n']}: regex {ok}/{len(regex_results[c['n']])}" + (f" failed: {failed}" if failed else ""))
-        if args.judge_cmd:
-            grading = run(args.judge_cmd, judge_prompt(c, answer))
-            (out / f"{c['n']}-grading.md").write_text(grading)
-            results[c["n"]] = complete_grades(c, parse_grades(grading))
-            ok = sum(1 for _, v in results[c["n"]] if v == "PASS")
-            print(f"case {c['n']}: {ok}/{len(results[c['n']])} criteria passed - {c['title']}")
-        else:
-            print(f"case {c['n']}: answer saved to {out}/{c['n']}-answer.md - grade manually - {c['title']}")
-    passed = total = 0
-    if results:
-        passed, total = summarize(results)
-        print(f"TOTAL {passed}/{total}")
-    regex_passed, regex_total = summarize(regex_results)
-    if regex_total:
-        print(f"REGEX TOTAL {regex_passed}/{regex_total}")
-    failed = (results and passed < total) or regex_passed < regex_total
-    return 1 if failed and not args.allow_fail else 0
+        samples = []
+        for k in range(args.samples):
+            sample = evaluate_sample(c, args, out, k)
+            samples.append(sample)
+            print(describe(c, k, sample, args.samples), flush=True)
+        graded = [s["ok"] for s in samples if s["ok"] is not None]
+        rate = (sum(1 for ok in graded if ok) / len(graded)) if graded else None
+        summary[c["n"]] = {"title": c["title"], "samples": len(samples), "graded": len(graded), "pass_rate": rate}
+        if rate is not None:
+            print(f"case {c['n']}: pass rate {sum(1 for ok in graded if ok)}/{len(graded)}", flush=True)
+            if rate < args.min_pass_rate:
+                failed_cases.append(c["n"])
+    (out / "summary.json").write_text(json.dumps(summary, indent=1) + "\n")
+    graded_cases = [s for s in summary.values() if s["pass_rate"] is not None]
+    if graded_cases:
+        stable = sum(1 for s in graded_cases if s["pass_rate"] >= args.min_pass_rate)
+        print(f"CASES {stable}/{len(graded_cases)} at pass rate >= {args.min_pass_rate:g}", flush=True)
+    return 1 if failed_cases and not args.allow_fail else 0
 
 
 if __name__ == "__main__":

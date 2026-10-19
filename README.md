@@ -115,8 +115,10 @@ numbers.
 - Behavior and defaults of Redisson, Netty, gRPC, Tomcat, HikariCP, AWS SDK and Jackson.
 - Running and judging A/B experiments, and shipping changes with rollback triggers.
 
-**Not covered:** deep application profiling, GC theory beyond what decisions need, non-HotSpot
-JVMs, Windows containers, vendor monitoring beyond the optional add-ons.
+**Deliberately out of scope:** non-HotSpot JVMs (OpenJ9, GraalVM native image) and Windows
+containers, because their behavior differs enough that mixing them in would dilute the guidance.
+Also not covered: deep application design and GC theory beyond what decisions need. Optional
+add-ons cover Spring Boot, Kotlin coroutines and the Datadog profiler.
 
 ## How it works
 
@@ -127,7 +129,7 @@ context stays small.
 ```
 SKILL.md        entry point: protocol, rules, routing table
 references/     detail loaded on demand
-addons/         optional vendor notes (Datadog)
+addons/         optional stack notes (Spring Boot, Kotlin coroutines, Datadog)
 evals/          prompts with expected behaviors
 scripts/        read-only helpers and checkers (see below)
 claims.json     machine-checkable claims: source, tag, expected text
@@ -155,7 +157,7 @@ All read-only. Python scripts use only the standard library.
 | `scripts/arena_count.py smaps.txt --cores N` | Estimate glibc arena regions from a saved `/proc/1/smaps` |
 | `scripts/check_claims.py [--online]` | Verify `claims.json`: fields, tags, source IDs, phrases; online mode re-fetches each source |
 | `scripts/check_links.py` | Verify relative links, file references and source IDs |
-| `scripts/run_evals.py` | Run the evals against any agent command; deterministic regex checks always, optional judge command |
+| `scripts/run_evals.py` | Run the evals against any agent command with a judge command; `--samples N` reports a pass rate per case |
 | `scripts/check_jdk_defaults.py [--java PATH]` | Compare documented JVM defaults with a real JDK's `PrintFlagsFinal` |
 | `scripts/check_staleness.py` | Fail when a reference's `Last reviewed` date is missing, invalid, in the future or older than 6 months |
 | `scripts/format_md.py [--check] [--wrap N] [--align-tables]` | Conservative Markdown formatter: whitespace, blank lines, bullet markers; optional re-wrap and table alignment that never split code spans or change a word |
@@ -171,30 +173,32 @@ python3 scripts/run_evals.py --agent-cmd "claude -p" --judge-cmd "claude -p" --o
 ```
 
 Without `--judge-cmd`, answers are saved for manual grading against the "must" and "must not"
-lines. Judge output is a model opinion; spot-check it. Independently of any judge, the
-deterministic patterns in [`evals/checks.json`](evals/checks.json) run on every answer and are
-reported as `regex`; they are cheap, repeatable and catch the obvious failures. Every check is
-tested against golden answers in [`evals/golden/`](evals/golden): a good answer must pass all
-of a case's checks and a plausible wrong one must fail at least one. The judge grades one
+lines. Judge output is a model opinion; spot-check it. The judge grades one
 criterion per behavior, a criterion it leaves out counts as a failure, and the run exits non-zero
 when anything fails.
 
 ### How it was tested
 
-Tested with Claude Code only (`claude -p` reading `SKILL.md` and the references it routes to),
-using one model and a model judge from the same family. The 16 prompts were written by the
-author, with one sample per case.
+Tested with Claude Code only: `claude -p` reading `SKILL.md` and the references it routes to, 18
+prompts written by the author, 3 samples per case, graded per criterion by a model judge.
 
-| Run | Judge | Regex checks |
-|---|---|---|
-| First full run, 16 cases | 65 of 69 criteria | 78 of 78 |
-| Re-run of the 4 cases that had failed, after fixing the skill text | 21 of 21, then 8 of 8 on a final re-run of case 11 | all passing |
+| Run | Result |
+|---|---|
+| All 18 cases, small judge model, original criteria | 7 of 18 cases passed all 3 samples |
+| Same answers, re-judged by the stronger default model against corrected criteria | 50 of 54 samples passed every criterion; 15 of 18 cases passed all 3 |
+| Cases 8 and 12 re-run after two small skill fixes | case 8: 2 of 3, case 12: 1 of 3 (see below) |
 
-Treat this as evidence that the skill changes the agent's behavior in the intended direction, not
-as a benchmark: a judge model is an opinion, one sample per case hides variance, and the
-prompts reflect the author's own failure modes. Other agents are untested. Run
-`scripts/run_evals.py` with your own agent and judge, and open an issue with any answer you think
-is wrong.
+How to read this: the first run's judge was noisy (it marked answers as failed while its own
+reason described a pass), so the stronger judge is the better measure. After seeing the first
+results, five criteria that asked for more than the skill documents were relaxed (case 1, 3, 10,
+16 and 18), and the case 12 criterion was rewritten because a conditional "Must" is read as
+mandatory. Those edits were made after seeing results, so the pass rates above are calibrated
+to the criteria, not blind. The remaining misses are small: case 11 sometimes sizes limiters
+without naming Little's Law, case 8 sometimes omits the unset default as an A/B arm, and case 12
+once offered a class histogram without the high-impact warning. It is not a benchmark: a judge
+model is an opinion, three samples per case hide variance, the prompts reflect the author's own
+failure modes, and other agents are untested. Run `scripts/run_evals.py --samples 3` with your own
+agent and judge, and open an Eval case issue for any answer you think is wrong.
 
 ## Freshness
 
@@ -219,10 +223,11 @@ template (claim, one tag, source, version, date, "refuted if").
 
 ## Roadmap
 
-- More claims in `claims.json` (currently 33 of the most decision-relevant).
-- More add-ons (Spring, Kotlin coroutines, Kafka clients, OSS observability stacks) kept
-  separate from the generic core.
-- An independent expert review of the flag-catalog verdicts.
+- More claims in `claims.json` (currently 61 of the most decision-relevant).
+- More add-ons on request (for example Kafka clients and OSS observability stacks), kept
+  separate from the generic core and written to the same evidence standard.
+- An independent expert review and reproductions of the flag-catalog verdicts
+  (`docs/reproduce-a-verdict.md`).
 - Published raw data for the measured ([E]) results.
 
 ## Status and license

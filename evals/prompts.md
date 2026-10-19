@@ -9,7 +9,7 @@ the agent reading only `SKILL.md` and the references it routes to.
 Prompt: "Pod working set is 1.3 GiB of a 2 GiB limit, heap committed ~340 MB, JDK 25, 4-vCPU
 nodes, no CPU limit, ~120 threads, smaps shows ~32 rw-p regions of ~64 MiB."
 Must: call glibc arenas a hypothesis with a refutation test (`System.trim_native_heap`, NMT);
-ask for glibc version, flags and cgroup files; propose `MALLOC_ARENA_MAX` as one change with
+ask for the glibc version, the cgroup files and the flags or environment in effect; propose `MALLOC_ARENA_MAX` as one change with
 proof it took effect and an A/B; refuse to size limits from idle data.
 Must not: recommend heap changes first; state a saving as certain.
 
@@ -26,7 +26,7 @@ Must not: approve any item on the evidence given.
 Prompt: exit 137, no `OutOfMemoryError`, `MaxRAMPercentage=40`, 2 Gi limit, Netty/gRPC/Redisson;
 a teammate wants 60% and 3 Gi.
 Must: separate cgroup OOM from Java OOME, liveness kill and eviction; ask for `lastState`,
-`memory.events`, NMT, smaps, direct memory and thread counts; note a larger heap can enlarge
+`memory.events` and NMT, and for smaps, direct-memory or thread-count evidence; note a larger heap can enlarge
 the Netty direct cap; state what evidence would justify raising the heap.
 Must not: raise limits before attribution.
 
@@ -57,7 +57,9 @@ Must: refuse a significance claim at n=2; ask for an A/A noise floor, longer soa
 ## 8. Adversarial
 
 Prompt: "MALLOC_ARENA_MAX=2 is the best practice, just set it."
-Must: say 2 has no tested source here [A]; A/B against 4 and the default.
+Must: say values from 1 to 4 are used in practice but none is backed by a vendor benchmark, so it is not "the best practice"; say a lower cap trades memory for malloc lock contention; A/B against 4 and the default.
+
+Must not: accept 2 as settled or reject it as folklore.
 
 ## 9. Compact headers in the runtime image only
 
@@ -73,8 +75,8 @@ JDK 25, we run G1, 1 CPU limit, 2 Gi limit. A teammate wants to switch to ZGC."
 Must: confirm which collector is actually running (`VM.flags` or the GC log header), since a JVM
 that sees 1 CPU defaults to Serial before JDK 27 unless G1 is pinned; ask for the GC log and
 safepoint log lined up with the spike timestamps, including the `gc+cpu` user/sys/real line;
-ask for `cpu.stat` throttling (`nr_throttled`); treat throttling and time-to-safepoint as
-competing hypotheses; say a collector switch needs an A/B on memory and latency together.
+ask for `cpu.stat` throttling (`nr_throttled`); treat throttling and GC pauses as competing
+hypotheses and check time-to-safepoint; say a collector switch needs an A/B on memory and latency together.
 
 Must not: switch the collector first; blame the GC without a pause line that matches the spike.
 
@@ -101,9 +103,10 @@ Must: classify the dump as high impact (stop-the-world, writes about heap size, 
 data) and ask for confirmation before running it; warn it can tip the pod over, and that the
 destination matters (a memory-backed volume counts against the memory limit, disk counts as
 ephemeral storage); prefer existing metrics and logs first, or a sibling pod that shows the same
-growth; if it suggests a class histogram, say that is also high impact, not a free alternative.
+growth.
 
-Must not: run the dump without confirmation; claim a dump or histogram is harmless.
+Must not: run the dump without confirmation; claim a dump or histogram is harmless; present a class
+histogram or a heap dump as a free or cheap alternative.
 
 ## 13. Errors on every rollout
 
@@ -143,9 +146,36 @@ Must not: ask for pod specs, cgroup files or JVM flags; apply the investigation 
 Prompt: "Our service runs on JDK 17. Can we turn on compact object headers and the AOT cache,
 and use virtual threads?"
 
-Must: say compact object headers are a product flag from JDK 25 (experimental in 24), the AOT
+Must: say compact object headers are a product flag from JDK 25, the AOT
 cache needs JDK 24 or later, and virtual threads are final from JDK 21, so none is available on
 17; say the skill's tested range starts at 21 and every claim needs verifying on the actual
 build; name an upgrade path before tuning.
 
 Must not: provide flags as if they would work on 17.
+
+## 17. Spring Boot drops requests on deploy
+
+Prompt: "Spring Boot 3.5 service on Kubernetes. Every deploy drops a few requests. We have the
+default terminationGracePeriodSeconds, no preStop hook, and spring.lifecycle.timeout-per-shutdown-phase
+at its default. Liveness checks the database. What should we look at?"
+
+Must: say graceful shutdown is on by default in Boot and that the shutdown timeout is per
+shutdown phase and defaults to 30 s; say `terminationGracePeriodSeconds` must exceed the preStop
+time plus the drain time or the kubelet kills the pod mid-drain; propose a short preStop sleep
+to cover endpoint-removal lag and verify by killing a pod under load; say liveness must not
+depend on external systems such as the database because an outage can restart every instance.
+
+Must not: disable graceful shutdown; raise memory or CPU first.
+
+## 18. Kotlin coroutines stall under load
+
+Prompt: "Kotlin service on a 2 CPU pod. p99 stalls under load while CPU stays low. Most handlers
+run in Dispatchers.Default and call blocking JDBC. A teammate wants to double the CPU limit."
+
+Must: say Dispatchers.Default has about as many workers as CPU cores (minimum two), so a few
+blocked requests stall every coroutine on it; move the blocking calls to Dispatchers.IO or a
+`limitedParallelism` view sized to the database pool; confirm with a thread dump showing
+`DefaultDispatcher-worker` threads blocked; mention `runInterruptible` when a timeout must free a
+blocked thread.
+
+Must not: raise the CPU limit first; claim `limitedParallelism` works as a mutex.

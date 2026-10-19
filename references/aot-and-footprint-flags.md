@@ -11,7 +11,7 @@ Tags and source IDs are defined in `sources.md`.
 | 17 | G1 on server-class machines (>= 2 CPUs and >= 1792 MB), else Serial | not available | not available | no final virtual threads; generational ZGC absent; cgroup v2 supported (see `container-memory.md`); 17 is outside this skill's tested range, so re-verify every claim |
 | 21 | G1 on server-class machines (>= 2 CPUs and >= 1792 MB), else Serial | not available | n/a | Generational ZGC opt-in (JEP 439) |
 | 25 | same as 21 | product flag, off by default (JEP 519) | `AOTMode=on` | one-step AOT cache (JEP 514) |
-| 26 | same | same | `AOTMode=on` | any-GC AOT objects (JEP 516, [A]) |
+| 26 | same | same | `AOTMode=on` | AOT cache works with any GC including ZGC (JEP 516, [O]); the streamed format needs an extra CPU core to be efficient |
 | 27 (GA 2026-09-15) | G1 always (JEP 523) | on by default (JEP 534), opt out with `-XX:-UseCompactObjectHeaders` | `AOTMode=required` replaces `on`; `on` stays as a discouraged alias | `required` exits if the cache cannot load; use `auto` in production |
 
 On JDK 27 the `AOTMode=on` build gate becomes `AOTMode=required` (`on` still works as a
@@ -23,7 +23,7 @@ discouraged alias). [O] JEP-483, JAVA-MAN27
 |---|---|
 | 24 | JEP 483: AOT class loading and linking, two-step record/create. [O] |
 | 25 | JEP 514 `-XX:AOTCacheOutput` one-step; JEP 515 method profiles in the cache. [O] |
-| 26 | JEP 516: object caching with any GC (from an article, not read on the JEP). [A] INSIDE-AOT |
+| 26 | JEP 516: object caching with any GC, including ZGC, via a GC-agnostic streamed format (`-XX:+AOTStreamableObjects`). [O] JEP-516 |
 | 27 | `AOTMode=on` renamed `required`; `on` kept as a discouraged alias. [O] JEP-483, JAVA-MAN27 |
 
 ```

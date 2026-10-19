@@ -16,8 +16,11 @@ An idle JVM service can use several times its heap in total. Attribute the rest.
 
 ## Recipes
 
-- Working set vs RSS vs page cache: the kubelet OOM decision uses working set (cgroup
-  `memory.current` minus inactive file). `kubectl top` shows working set.
+- Two different limits. The kernel kills the container when `memory.current` reaches
+  `memory.max` and reclaim fails (reclaimable page cache is reclaimed first). The kubelet
+  evicts pods under node pressure using `memory.available = capacity - workingSet`, where the
+  working set excludes inactive file memory; eviction is not an OOM kill. `kubectl top` shows
+  working set. [O] K8S-EVICT
 - smaps by mapping (arena regions are ~64 MiB `rw-p`):
   `awk '/^[0-9a-f]+-[0-9a-f]+ /{r=$1;p=$2} /^Rss:/{if(p=="rw-p")s[r]=$2} END{for(k in s)t+=s[k];print t" kB in rw-p"}' /proc/1/smaps`
   then count ~64 MiB regions to estimate arena count.

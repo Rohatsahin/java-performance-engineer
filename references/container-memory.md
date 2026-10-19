@@ -10,15 +10,18 @@ Tags and source IDs are defined in `sources.md`.
 - `MaxRAMPercentage` default 25, `InitialRAMPercentage` 1.5625, `MinRAMPercentage` 50 (applies
   only to very small heaps). [O] JAVA-MAN21
 - cgroup v2 detection: JDK 15+, backported to 8u372 and 11.0.16. Older builds on a v2 node may
-  size from host RAM. [O/P] K8S-CGROUPS. Check: `stat -fc %T /sys/fs/cgroup/` (`cgroup2fs` = v2).
+  size from host RAM. [O] K8S-CGROUPS. Check: `stat -fc %T /sys/fs/cgroup/` (`cgroup2fs` = v2).
   Kubernetes deprecates cgroup v1. [O] K8S-CGROUPS
 - Verify what the JVM sees (in the pod):
   `java -XX:+PrintFlagsFinal -version | grep -E 'MaxRAMPercentage|MaxHeapSize|UseContainerSupport'`,
   `java -Xlog:os+container=trace -version` ([O] JAVA-MAN21 documents the `os+container` tag),
   `cat /sys/fs/cgroup/memory.max`.
-- Heap percentage is a judgment call. The JDK default is 25%; Red Hat UBI images use 80%
-  (`JAVA_MAX_MEM_RATIO`) and say it leaves room for probe/exec processes [O] RH-MEM; blogs say
-  60-80% depending on non-heap use [A]. Never 100%. Derive from measurement:
+- Heap percentage is a judgment call. The JDK default is 25%. Vendor starting points: Red Hat
+  UBI images use 80% (`JAVA_MAX_MEM_RATIO`) to leave room for probe/exec processes [O] RH-MEM;
+  Microsoft's container guide says to allocate 75% of container memory to the heap and never to
+  set it equal to the container memory (its example is a 4 GB container with
+  `-XX:MaxRAMPercentage=75`). [O] MS-JAVA-CONTAINERS Both are generic starting points that do
+  not know your non-heap use. Never 100%. Derive from measurement:
   `heap % = (limit - measured non-heap peak - safety) / limit`, where the non-heap peak comes
   from NMT plus arena/smaps at steady state under peak load and `safety` is your choice
   (`formulas.md` section 4). `MaxRAMPercentage` applies to the cgroup limit.
@@ -44,10 +47,10 @@ non-JVM processes (probes, tmpfs, page cache charged to the cgroup)`.
 | Mechanism | Detail | Source |
 |---|---|---|
 | cgroup OOM | `memory.max` hit and reclaim fails; container terminated, `lastState.terminated.reason: OOMKilled`, exit 137 (128 + SIGKILL) | [O] K8S-MEM, KERNEL-CG2 |
-| `memory.high` | throttles and reclaims, never invokes the OOM killer; used by Kubernetes MemoryQoS on v2 | [O] KERNEL-CG2 |
+| `memory.high` | throttles and reclaims, never invokes the OOM killer; Kubernetes writes it only when the MemoryQoS feature is enabled, so read the value in your pod instead of assuming | [O] KERNEL-CG2 |
 | `memory.events` | `oom`, `oom_kill`, `max`, `high` counters; `memory.oom.group=1` kills the whole cgroup | [O] KERNEL-CG2 |
 | Node-pressure eviction | pod goes Failed (not OOMKilled); `memory.available = capacity - workingSet`; working set ~ `memory.current - inactive_file` | [O] K8S-EVICT (formula via its linked script, not read) |
-| QoS | Guaranteed needs requests == limits for CPU and memory in every container; eviction order BestEffort, Burstable, Guaranteed | [O] K8S-QOS |
+| QoS | Guaranteed needs requests == limits for CPU and memory in every container. Kubelet eviction does not rank by QoS class: it ranks pods whose usage exceeds requests first, then Pod Priority, then usage relative to requests; QoS only estimates that order. The kernel OOM killer does use QoS, through the container's `oom_score_adj` (Guaranteed -997, BestEffort 1000) | [O] K8S-QOS, K8S-EVICT |
 
 Requests drive scheduling; the limit is the hard ceiling. `kubectl top` shows working set, so
 compare it with the limit, not with heap. [O] K8S-MEM
@@ -83,19 +86,22 @@ dmesg -T | grep -iE 'oom|killed process'        # on the node
    `memory.stat` `anon`). A large gap means non-NMT native memory or allocator retention.
 4. Map the gap with `pmap -x <pid> | sort -k3 -n | tail` or `/proc/<pid>/smaps`. Many ~64 MB
    anonymous regions suggest glibc arenas. [A]
-5. glibc: `MALLOC_ARENA_MAX` default 0 means the cap derives from online cores; the manual
-   words it loosely. The source (`malloc/arena.c`, `NARENAS_FROM_NCORES`) gives 8 per core on
+5. glibc: `MALLOC_ARENA_MAX` default 0 means the cap derives from the CPUs online on the host
+   (not the cgroup CPU limit), so a pod limited to 2 CPUs on a many-core node can still grow
+   many arenas. [P] The source (`malloc/arena.c`, `NARENAS_FROM_NCORES`) gives 8 per core on
    64-bit [O] GLIBC-ARENA-SRC, and arena-sized region counts consistent with it were seen in the authors' runs [E]. It is an upper
    bound reached only with enough contending threads. `MALLOC_TRIM_THRESHOLD_` default 128 KB but dynamic; setting it (or
    `MALLOC_MMAP_THRESHOLD_`) fixes the value and disables the dynamic adjustment. [O] GLIBC-TUN
-   The popular `MALLOC_ARENA_MAX=2` has no tested source; A/B it. [A]
-6. Return memory: `jcmd <pid> System.trim_native_heap` (JDK 18+, glibc). [O] HOTSPOT-TRIM
-   Periodic `-XX:TrimNativeHeapInterval=<ms>`: fix version 22 with backports to 21.0.1 and
-   17.0.9, experimental when introduced and made a product flag in 23 (JDK-8325496). [O]
-   JDK-8293114. It reclaims free pages at the top, not holes inside live memory. If trimming
-   drops RSS sharply, it is allocator retention rather than a leak. Caution: trimming takes
-   arena locks and can briefly stall allocating threads, so try the one-off
-   `System.trim_native_heap` on a single canary pod first, not a whole fleet.
+   Values from 1 to 4 are used in practice; none is backed by a vendor benchmark, and a lower
+   cap trades memory for malloc lock contention, so A/B p99 and CPU under load. [P]
+6. Return memory: `jcmd <pid> System.trim_native_heap` (Linux/glibc only; confirm it exists on
+   your build with `jcmd <pid> help`). [O] HOTSPOT-TRIM
+   Periodic `-XX:TrimNativeHeapInterval=<ms>`: fixed in JDK 22 with backports; it was
+   experimental when introduced and became a product flag in 23 (JDK-8325496), so earlier
+   builds need `-XX:+UnlockExperimentalVMOptions`. [O] JDK-8293114 It reclaims free pages at the top, not holes inside live memory. If trimming
+   drops RSS sharply, it is allocator retention rather than a leak. Lower intervals reclaim more eagerly at higher overhead (JDK man page); the
+   lock-contention mechanism is [U], so try the one-off `System.trim_native_heap` on a single
+   canary pod first, not a whole fleet.
 7. Allocation profiling with jemalloc: `LD_PRELOAD` plus
    `MALLOC_CONF=prof:true,lg_prof_sample:17,lg_prof_interval:30,prof_final:true`, then
    `jeprof --show_bytes <java> <dump>`; needs debug symbols, adds overhead. [A] (vendor guides

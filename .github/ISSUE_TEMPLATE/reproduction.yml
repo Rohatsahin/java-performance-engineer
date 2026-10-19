@@ -1,0 +1,38 @@
+name: Reproduction result
+description: Results of re-running a flag verdict from the catalog, confirming or contradicting it
+labels: [reproduction]
+body:
+  - type: input
+    id: verdict
+    attributes:
+      label: Verdict tested (as named in references/flag-catalog.md)
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: JDK build, base image and glibc, node type and vCPU, Kubernetes version, workload type. No company or host names.
+    validations:
+      required: true
+  - type: textarea
+    id: method
+    attributes:
+      label: Method
+      description: Variants, A/A pair, n, soak, load shape, how you proved the flag was live.
+    validations:
+      required: true
+  - type: textarea
+    id: results
+    attributes:
+      label: Results
+      description: Use the template in docs/reproduce-a-verdict.md, including the A/A spread.
+    validations:
+      required: true
+  - type: dropdown
+    id: outcome
+    attributes:
+      label: Outcome
+      options: [confirms, contradicts, inconclusive]
+    validations:
+      required: true

@@ -1,0 +1,23 @@
+name: Eval case
+description: A realistic prompt where the skill gave a wrong, unsafe or unhelpful answer, or a scenario it should handle
+labels: [evals]
+body:
+  - type: textarea
+    id: prompt
+    attributes:
+      label: Prompt (anonymized)
+      description: What the user asked, with symptoms and versions. Remove company names, hostnames and secrets.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Behaviors a correct answer must show, and must not show
+      description: One behavior per line, in the style of evals/prompts.md. Link a primary source for any factual behavior.
+    validations:
+      required: true
+  - type: textarea
+    id: observed
+    attributes:
+      label: What the agent answered (optional)
+      description: Which agent and model, and where it went wrong.

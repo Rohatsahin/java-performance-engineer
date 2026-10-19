@@ -9,8 +9,12 @@ Tags and source IDs are defined in `sources.md`.
 - Oracle's guide: Serial for small data or a single CPU; Parallel when pauses of 1 s are fine
   and throughput matters; G1 when response time matters more than throughput; ZGC when latency
   is a top priority. It is a starting point, so measure. [O] ORA-GC-COLL
-- JDK 9-26 ergonomics: a "server-class machine" (>= 2 CPUs and >= 1792 MB) gets G1; otherwise
-  Serial. JEP 523 (JDK 27) always selects G1. [O] JEP-523
+- JDK 9-26 ergonomics (`os::is_server_class_machine`): G1 when the JVM sees at least 2 active
+  processors and at least 1792 MB; otherwise Serial. On x86 the source also divides the active
+  processors by the threads-per-package value the CPU reports and requires at least 2, so a small
+  container (for example 2-3 CPUs) on such a host may still get Serial; Oracle's guide states only the CPU and
+  memory rule. Confirm on the real node with `jcmd <pid> VM.flags` or `-Xlog:gc+init`. [O]
+  JDK-OS-CPP JEP 523 (JDK 27) always selects G1. [O] JEP-523
 - Generational ZGC: JEP 439 (JDK 21), opt-in with `-XX:+ZGenerational`. `-XX:+UseZGC` is
   generational by default since JDK 23 (JEP 474) and the non-generational mode was removed in
   JDK 24 (JEP 490); `-XX:+/-ZGenerational` now only prints an obsolete-option warning and may be
@@ -37,12 +41,12 @@ humongous region churn in `gc+heap=info`; the safepoint log shows time-to-safepo
 
 | Knob | Guidance |
 |---|---|
-| `-Xmx`, `MaxGCPauseMillis` (200 default) | start here only |
-| `-Xmn`, `NewRatio`, `G1NewSizePercent`, `G1MaxNewSizePercent` | avoid: fixing young gen disables pause-time control |
-| IHOP | adaptive by default; if Full GCs follow late marking, raise `G1ReservePercent` or set `-XX:-G1UseAdaptiveIHOP -XX:InitiatingHeapOccupancyPercent=45` |
+| `-Xmx`, `MaxGCPauseMillis` (soft goal, 200 ms default for G1 [O] JAVA-MAN21) | start here only |
+| `-Xmn`, `NewRatio` | avoid: fixing young gen disables pause-time control. `G1NewSizePercent`/`G1MaxNewSizePercent`: the guide uses them only as targeted fixes (for example lower `G1NewSizePercent` when object copy dominates pauses); change only with pause evidence |
+| IHOP | adaptive by default; if Full GCs follow late marking, raise `G1ReservePercent` (default 10) or disable adaptivity (`-XX:-G1UseAdaptiveIHOP`) and set `-XX:InitiatingHeapOccupancyPercent` below the occupancy at which the log shows marking starting (default 45) |
 | `G1HeapRegionSize` | objects >= half a region are humongous; raise (e.g. 16m) if humongous churn drives Full GCs |
-| `ConcGCThreads` | raise only if concurrent marking does not finish and Full GCs follow |
-| `G1PeriodicGCInterval` (0 = off) | periodic GC so idle heap can be uncommitted (JEP 346); resize happens at Remark/Full [O] JEP-346 |
+| `ConcGCThreads` | default about a quarter of `ParallelGCThreads` [O] JAVA-MAN21; raise only if concurrent marking does not finish and Full GCs follow, and re-check throttling |
+| `G1PeriodicGCInterval` (0 = off) | when set, a periodic GC runs after that many ms without one, after which G1 can resize and return memory; G1 otherwise uncommits only at a full GC or during a concurrent cycle [O] JEP-346 |
 | `Min/MaxHeapFreeRatio` | defaults 40/70 [O] FORM-ORA-GC; confirm with `PrintFlagsFinal` on your JDK |
 | `-Xms` = `-Xmx` + `AlwaysPreTouch` | steadier pauses, costs RSS immediately |
 
@@ -62,12 +66,18 @@ humongous region churn in `gc+heap=info`; the safepoint log shows time-to-safepo
   ratio, not average CPU. cAdvisor exports `container_cpu_cfs_periods_total`,
   `container_cpu_cfs_throttled_periods_total` and `container_cpu_cfs_throttled_seconds_total`;
   throttle ratio = rate(throttled periods) / rate(periods). [O] CADVISOR
-- Mechanism: a 500m limit is 50 ms per 100 ms period; once spent, all threads stop until the
-  next period, so many GC/JIT/event-loop threads burn it fast and add latency at low average
-  CPU. [P]
-- Removing limits vs keeping requests: blogs only. Without a limit the pod is Burstable and
-  can use idle node CPU but may starve neighbours and breaks %-of-limit autoscaling. Keep
-  memory limit equal to request. [A]
+- Mechanism: `cpu.max` is `$MAX $PERIOD` (period default 100 ms); the quota is shared by all
+  threads of the cgroup, so a 500m limit is 50 ms of CPU per 100 ms across all threads, and
+  once spent every thread is throttled until the next period. Many GC/JIT/event-loop threads
+  burn it fast and add latency at low average CPU. [O] KERNEL-CG2, KERNEL-BWC
+- CPU limits vs requests: a limit is a hard cap enforced by throttling even when the node has
+  idle CPU; a request is the scheduling guarantee and a proportional weight under contention.
+  [O] K8S-RESOURCES, KERNEL-CG2 Dropping the limit lets the pod use idle node CPU (Burstable
+  QoS) but the JVM then sees the node's cores (size pools with `ActiveProcessorCount`),
+  neighbour protection depends on every pod having a sensible request, and HPA utilization is
+  computed against the request, so a request is still required. [O] K8S-HPA Red Hat's
+  OpenShift guidance advises against CPU limits for the throttling reason. [P] Keep the memory
+  limit equal to the request: memory is not compressible. [P]
 
 ## 5. Thread-count audit
 
