@@ -28,7 +28,7 @@ Tags and source IDs are defined in `sources.md`.
 - Measure before tuning, change one variable, compare under identical load. [P]
 - **Coordinated omission**: a closed-loop load generator waits for each response, so stalls
   hide the requests that would have been slow. Use open-loop or constant-rate generators and
-  intended-start-time latency. [A] ARXIV-CO (paper; the original talks were not fetched)
+  intended-start-time latency. [A] ARXIV-CO
 - **JMH** suits micro-benchmarks, not GC or throttling behavior. Use forks, consume results
   through a `Blackhole`, avoid constant inputs. [P]
 

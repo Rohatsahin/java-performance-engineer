@@ -4,3 +4,6 @@
 *.jfr
 __pycache__/
 results/
+*.bak
+*.orig
+*.swp

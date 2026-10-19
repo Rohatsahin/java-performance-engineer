@@ -11,7 +11,7 @@
 
 <p align="center">
   <img alt="license" src="https://img.shields.io/badge/license-MIT-green">
-  <img alt="status" src="https://img.shields.io/badge/status-early%20draft-orange">
+  <img alt="version" src="https://img.shields.io/badge/version-0.1.0-blue">
   <img alt="platform" src="https://img.shields.io/badge/runtime-JVM%20on%20Kubernetes-blue">
   <img alt="jdk" src="https://img.shields.io/badge/JDK-21%20to%2027-informational">
   <img alt="evidence" src="https://img.shields.io/badge/claims-evidence%20tagged-success">
@@ -182,7 +182,7 @@ template (claim, one tag, source, version, date, "refuted if").
 
 ## Status and license
 
-Early draft. Built with AI assistance (Claude), starting from the author's own JVM tuning
+Version 0.1.0. Built with AI assistance (Claude), starting from the author's own JVM tuning
 investigations. Claims are checked against the cited sources, tagged by evidence quality, and
 re-checked by CI every month; it has not yet had an independent review by a JVM expert, so
 corrections are welcome. Licensed under the [MIT License](LICENSE). Not affiliated with or endorsed by Oracle, Datadog,
