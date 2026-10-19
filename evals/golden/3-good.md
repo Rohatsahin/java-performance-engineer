@@ -1,0 +1,1 @@
+Exit 137 with no OutOfMemoryError means a cgroup OOMKilled, not a Java OOME. Send lastState and memory.events, NMT, smaps, direct memory and thread counts. A bigger heap can make it worse; no change until attribution.

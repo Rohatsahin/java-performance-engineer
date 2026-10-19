@@ -1,0 +1,1 @@
+Concurrency is no longer capped by threads, so the Hikari pool of 10 and the 50-call downstream become the limit. Use a semaphore sized from the tightest, 10, with Little's Law. On JDK 21 synchronized pins the carrier, fixed from JDK 24 (JEP 491); carriers default to the CPU count. Watch jdk.VirtualThreadPinned, set per-call timeouts, and A/B.

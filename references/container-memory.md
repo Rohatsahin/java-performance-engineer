@@ -68,8 +68,8 @@ dmesg -T | grep -iE 'oom|killed process'        # on the node
   native or non-heap memory. [P]
 - 137 without OOMKilled can be a liveness-probe kill or node eviction. [P]
 - A Java `OutOfMemoryError` (heap, metaspace, "unable to create native thread", "Direct buffer
-  memory") is logged by the JVM; the heap dump hook fires only for that, never for a kernel
-  SIGKILL. [P]
+  memory") is logged by the JVM. `HeapDumpOnOutOfMemoryError` fires only for heap exhaustion,
+  not for the other kinds, and never for a kernel SIGKILL. [O] JAVA-MAN25
 - If the pod dies only when the node is tight, check node pressure and neighbours too.
 - `ExitOnOutOfMemoryError` exits with status 3; the heap dump (if enabled) is written before the exit, and `CrashOnOutOfMemoryError` aborts instead. [O] JDK-SRC-27 (source at jdk-27-ga). It never fires for a kernel OOM kill (137).
 
@@ -113,5 +113,6 @@ dmesg -T | grep -iE 'oom|killed process'        # on the node
   `jattach <pid> dumpheap /dumps/x.hprof` works with a JRE. [O] JATTACH Ephemeral containers
   with a shared process namespace are the alternative; attach needs the same uid (or root)
   and access to the target's `/tmp`, so verify in staging. [P/U]
-- Cheaper than dumps: `jcmd <pid> GC.class_histogram`, `Thread.print`, JFR (see
-  `profiling-and-load.md`).
+- Cheaper than dumps: `Thread.print` (Medium impact), bounded JFR (see `profiling-and-load.md`).
+  `GC.class_histogram` is rated High impact and is Tier 3 (`command-safety.md`); prefer metrics
+  and logs first, and run it on one pod.

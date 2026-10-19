@@ -15,5 +15,11 @@ Refuted if:   what observation would show it is wrong
 - Measured results ([E]) need the method, versions, sample size and a note on confounders. Say
   when a result came from a bundled change.
 - Do not add company-specific names, paths, namespaces, tokens or internal numbers.
-- After any change, run the prompts in `evals/prompts.md` and note regressions.
+- After any change, run the prompts in `evals/prompts.md` and note regressions. A new eval needs
+  an entry in `evals/checks.json` and a good and a bad answer in `evals/golden/`.
+- Run `python3 scripts/format_md.py` before committing Markdown, and
+  `python3 -m unittest discover -s tests`.
+- A claim in `claims.json` needs an `expect` string that would stop matching if the claim became
+  false; a bare keyword that appears on every page of the source proves nothing. Use
+  `"verify": "manual"` only when the source blocks scripts and a human read it.
 - Version-bound facts get a row in the version matrix in `references/aot-and-footprint-flags.md`.

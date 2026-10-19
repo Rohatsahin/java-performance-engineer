@@ -1,0 +1,1 @@
+First confirm which collector runs: jcmd VM.flags or the GC log header, because a 1 CPU JVM defaults to Serial before JDK 27. Line up the GC log and safepoint log with the spike, read the gc+cpu real versus user and sys, and check cpu.stat nr_throttled. Throttling and time-to-safepoint compete with GC. A ZGC switch needs an A/B on memory and latency, or a canary.

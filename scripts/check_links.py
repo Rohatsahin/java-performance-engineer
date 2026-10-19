@@ -10,7 +10,7 @@ ID_RE = re.compile(r"\b((?:[A-Z][A-Z0-9]+)(?:-[A-Z0-9]+)+)\b")
 DEFINED_RE = re.compile(r"^- `([^`]+)`", re.M)
 PATH_RE = re.compile(r"`((?:references|addons|evals|scripts|docs|examples)/[A-Za-z0-9_./-]+\.[a-z]+)`")
 LINK_RE = re.compile(r"\]\(([^)#\s]+)(?:#[^)]*)?\)")
-SKIP_IDS_PREFIX = ("JDK-", "NEX-")
+SKIP_IDS_PREFIX = ("JDK-",)
 
 
 def main():

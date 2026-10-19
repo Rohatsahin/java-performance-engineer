@@ -38,3 +38,25 @@ Idle memory proves regions, not peaks. Replay representative traffic or use a he
 day. Record peak working set, heap used, major GCs, thread count, client timeouts and
 throttling ratio. Report peaks and percentiles, not means, and keep load shape and duration
 identical between control and variant.
+
+## Open-loop load generation
+
+Use a generator that starts requests at a fixed arrival rate regardless of response time, so a
+stalled server is charged for the requests it delayed. k6's `constant-arrival-rate` executor
+is an open-model example: iterations start independently of system response, and
+`preAllocatedVUs` must be large enough or the target rate is not reached. [O] K6-ARRIVAL Check
+the generator's own dropped or late iterations; a load tool that cannot keep the rate makes
+the result optimistic. [P] Warm up first and discard that window (`startup-and-warmup.md`),
+then hold a steady rate long enough to cover several GC cycles.
+
+## JMH profilers
+
+`-prof gc` reports allocation rate and GC churn per operation; `-prof stack` samples hot
+methods; `-prof comp` shows compilation during measurement; `-prof perfasm` pairs hot code
+with assembly on Linux. [O] JMH-SAMPLES Use them to explain a benchmark result, not to replace
+a production comparison (`hot-paths-and-allocation.md`).
+
+## JFR notes
+
+JDK 25 adds experimental JFR CPU-time sampling on Linux (event `jdk.CPUTimeSample`, off by default). [O]
+JEP-509 Check availability on your JDK with `jfr summary` before relying on an event.

@@ -101,7 +101,7 @@ version differs from the one noted. Last researched 2026-10.
 - `FORM-GOETZ` Goetz et al., *Java Concurrency in Practice*, ch. 8 (read via secondary sources)
 - `FORM-AMDAHL` Amdahl 1967; covered by `FORM-USL` as the beta = 0 case
 - `FORM-NIST` https://www.itl.nist.gov/div898/handbook/eda/section3/eda353.htm
-- Georges et al. 2007 https://dri.es/files/oopsla07-georges.pdf 
+- Georges et al. 2007 https://dri.es/files/oopsla07-georges.pdf
 
 ## Added after the 2026-10 verification pass
 
@@ -121,3 +121,15 @@ version differs from the one noted. Last researched 2026-10.
 - `DEP-SPRING-40` https://docs.spring.io/spring-boot/4.0/appendix/application-properties/index.html
 - `DEP-REDISSON-SRC` https://github.com/redisson/redisson/blob/redisson-4.0.0/redisson/src/main/java/org/redisson/config/Config.java (compared with redisson-3.50.0)
 - `DD-AOT` see `addons/datadog.md`
+
+## Added in 0.2.0 (read 2026-10)
+
+- `JAVA-JCMD25` https://docs.oracle.com/en/java/javase/25/docs/specs/man/jcmd.html
+- `JEP-444` (virtual threads, final in JDK 21) https://openjdk.org/jeps/444
+- `JEP-491` (virtual threads without pinning on `synchronized`, JDK 24) https://openjdk.org/jeps/491
+- `JEP-509` (JFR CPU-time profiling, JDK 25, Linux) https://openjdk.org/jeps/509
+- `JEP-521` (generational Shenandoah as a product feature, JDK 25) https://openjdk.org/jeps/521
+- `ZGC-WIKI` https://wiki.openjdk.org/display/zgc/Main
+- `K8S-LIFECYCLE` https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/
+- `JMH-SAMPLES` https://github.com/openjdk/jmh/blob/master/jmh-samples/src/main/java/org/openjdk/jmh/samples/JMHSample_35_Profilers.java
+- `K6-ARRIVAL` (open-model load, constant arrival rate) https://grafana.com/docs/k6/latest/using-k6/scenarios/executors/constant-arrival-rate/

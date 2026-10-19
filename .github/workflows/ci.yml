@@ -21,3 +21,27 @@ jobs:
         run: python3 scripts/check_links.py
       - name: Script syntax
         run: sh -n scripts/collect-request-pack.sh
+      - name: Markdown formatting
+        run: python3 scripts/format_md.py --check
+      - name: Stale references (warning only)
+        run: |
+          python3 scripts/check_staleness.py | tee stale.txt || true
+          grep '^STALE' stale.txt | while read -r _ line; do echo "::warning::$line"; done
+
+  jdk-defaults:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        jdk: ["21", "25", "27"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ matrix.jdk }}
+      - name: Documented defaults match this JDK
+        run: python3 scripts/check_jdk_defaults.py

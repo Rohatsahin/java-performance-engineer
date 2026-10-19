@@ -22,14 +22,12 @@ It fails when `estimate > available`. It counts maximums, not usage, and ignores
 buffers, malloc arenas and JIT scratch. Consequence: lowering `MaxRAMPercentage` lowers the
 estimate by `1.3 x` the heap reduction, which is why the warning clears.
 
-
 ## Datadog dd-java-agent
 
 The official setup page gives no thread, memory or startup overhead figures. [U] Measure: A/B
 with and without `-javaagent`, using NMT and `Thread.print | grep dd-`. Profiler toggles:
 `DD_PROFILING_HEAP_ENABLED=false` (master heap profiling off) and
 `DD_PROFILING_DDPROF_LIVEHEAP_ENABLED=false` (native engine only). [O] DD-JAVA
-
 
 ## Continuous profiler
 

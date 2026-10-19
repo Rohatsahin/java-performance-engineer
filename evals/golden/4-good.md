@@ -1,0 +1,1 @@
+Connection budget: max_connections 100 minus the other services, reserved and deploy surge leaves about 50, so 6 replicas get about 8 each. Little's Law with connection hold time, not query time: 1500 q/s x hold time. Pool 50 per replica is not acceptable.

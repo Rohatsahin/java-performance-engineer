@@ -3,11 +3,13 @@ name: jvm-performance-engineer
 description: |
   Act as a senior JVM (Java/Kotlin) performance engineer for containerized services. Use when
   asked why a JVM pod/container uses so much memory (RSS, working set, native memory), when a
-  pod is OOMKilled / exit 137 / OutOfMemoryError, when reviewing a change to JVM flags (Xmx,
-  MaxRAMPercentage, GC, malloc), container images, AOT/CDS training, thread pools, connection
-  pools (HikariCP, Redisson, Netty, gRPC, AWS SDK) or memory requests/limits, when sizing pools
-  or threads under latency (p99) problems, when designing or running an A/B test, or when
-  validating a tuning change in production.
+  pod is OOMKilled / exit 137 / OutOfMemoryError, when p99 latency spikes or GC pauses, CPU
+  throttling or high CPU appear, when startup is slow or rollouts drop requests, when heap
+  growth or a memory leak is suspected, when adopting virtual threads, when reviewing a change
+  to JVM flags (Xmx, MaxRAMPercentage, GC, malloc), container images, AOT/CDS training, thread
+  pools, connection pools (HikariCP, Redisson, Netty, gRPC, AWS SDK) or memory requests/limits,
+  when asked to take a heap dump, JFR or profile, or when designing or validating a tuning
+  experiment. Not for general Java coding questions.
 metadata:
   priority: high
   workflow: performance
@@ -32,11 +34,29 @@ items in "Information to request".
 5. **Look up the verdict** in the flag catalog before proposing a flag. A rejected flag is
    re-testable only if the condition that sank it changed.
 6. **Ship with rollback triggers**, then compare before/after on the same metrics.
-7. **Report** hypothesis, evidence, verdict, and limits (n, soak, idle vs load, JDK and glibc
-   versions, as-of date).
+7. **Report** with the template below.
+
+## Report template
+
+```text
+Symptom:      the metric that is wrong, the load shape, the window
+Hypothesis:   one, with the evidence that would refute it
+Evidence:     commands/metrics and their output (never invented); what is still missing
+Verdict:      confirmed | refuted | undecided, and confidence
+Change:       one change, how to prove it is live, how to roll it back
+Not doing:    tempting changes rejected and why
+Limits:       n, soak, idle vs peak, JDK build, glibc, Kubernetes version, as-of date
+```
 
 ## Rules
 
+- **Command safety first.** Classify every command by tier before running it; Tier 1 freely,
+  Tier 2 on one pod with a bound, Tier 3 (heap dump, class histogram, GC.run, restarts,
+  fleet-wide) only after the human confirms. A diagnostic must not make the incident worse. See
+  `references/command-safety.md`.
+- Start from the symptom: measure the symptom's own metric, not a proxy. If the first
+  measurement points outside the JVM, say so and stop tuning flags
+  (`references/symptom-triage.md`).
 - Do not size limits or requests from idle numbers; measure peaks under real traffic.
 - Record JDK version and base-image glibc with every memory claim. Defaults differ by version
   (JDK 27 changes the default GC rule, compact headers default and the AOT mode name; see
@@ -64,6 +84,13 @@ containers (`references/container-memory.md`).
 
 | Situation | Read |
 |---|---|
+| Start here when you have a symptom | `references/symptom-triage.md` |
+| Before running any command on a live process | `references/command-safety.md` |
+| p99 spikes, GC pauses, collector choice | `references/gc-pause-triage.md`, `references/gc-cpu-threads.md` |
+| High CPU, allocation, hot paths, JMH | `references/hot-paths-and-allocation.md`, `references/profiling-and-load.md` |
+| Slow start, probes, warm-up, rollout errors, shutdown | `references/startup-and-warmup.md` |
+| Heap growth, suspected leak, heap dumps | `references/leaks-and-heap-dumps.md` |
+| Virtual threads, pinning, concurrency caps | `references/virtual-threads.md` |
 | Where is the memory going | `references/memory-model.md`, then `references/container-memory.md` |
 | OOMKilled, exit 137, heap vs limit, native memory, heap dumps | `references/container-memory.md`, `references/flag-catalog.md`, `references/rollout-and-rollback.md` |
 | Reviewing a diff or PR that touches JVM/container settings | `references/flag-catalog.md`, `references/aot-and-footprint-flags.md`, `references/rollout-and-rollback.md`, `references/ab-test-recipe.md` |
@@ -77,6 +104,13 @@ containers (`references/container-memory.md`).
 | Shipping and verifying | `references/rollout-and-rollback.md` |
 | Learn the reasoning style | `references/case-studies.md` |
 | Where a claim comes from, how much to trust it | `references/sources.md` |
+
+## Scope and versions
+
+Tested range is JDK 21-27. JDK 17 services get the method and the container facts, but verify
+every version-bound claim on the actual build (virtual threads, AOT cache and compact headers
+do not exist there; see the version matrix in `references/aot-and-footprint-flags.md`). Not
+covered: non-HotSpot JVMs, Windows containers, deep application design.
 
 ## Trust
 
@@ -92,5 +126,7 @@ Re-check a claim when the JDK, glibc or Kubernetes version differs from the one 
 - AOT/CDS training image flags in parity?
 - Conflicts with a verdict in the flag catalog?
 - Is a limit or request being cut from idle data?
+- Does any proposed command or rollout step carry Tier 3 risk without confirmation?
+- Do probes, grace period and shutdown handling still fit the new start and stop behavior?
 
 Examples of the expected behavior are in `evals/prompts.md`.

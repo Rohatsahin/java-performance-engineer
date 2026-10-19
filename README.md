@@ -11,7 +11,7 @@
 
 <p align="center">
   <img alt="license" src="https://img.shields.io/badge/license-MIT-green">
-  <img alt="version" src="https://img.shields.io/badge/version-0.1.0-blue">
+  <img alt="version" src="https://img.shields.io/badge/version-0.2.0-blue">
   <img alt="platform" src="https://img.shields.io/badge/runtime-JVM%20on%20Kubernetes-blue">
   <img alt="jdk" src="https://img.shields.io/badge/JDK-21%20to%2027-informational">
   <img alt="evidence" src="https://img.shields.io/badge/claims-evidence%20tagged-success">
@@ -99,8 +99,15 @@ numbers.
 
 ## What it covers
 
+- Starting from a symptom (OOMKilled, p99 spikes, high CPU, slow start, rollout errors, heap
+  growth) with a first measurement and a route to the right playbook.
+- Command safety: every diagnostic is tiered; heap dumps and other high-impact commands need
+  confirmation, and secrets are redacted before sharing.
 - Attributing container memory: heap vs glibc arenas vs metaspace/code cache vs threads vs direct
   buffers; OOMKilled vs `OutOfMemoryError`.
+- GC pause triage, collector choice (G1, ZGC, Shenandoah), allocation and hot-path profiling.
+- Startup, warm-up, probes and graceful shutdown; leak and heap-dump workflow; virtual threads
+  (pinning, what to re-size).
 - Reviewing JVM flag, image, AOT/CDS and limit changes against recorded verdicts, each with a
   "refuted if" condition.
 - GC choice, CPU limits and throttling, thread and connection pool sizing (Little's Law,
@@ -144,11 +151,14 @@ All read-only. Python scripts use only the standard library.
 
 | Script | Purpose |
 |---|---|
-| `scripts/collect-request-pack.sh POD [NS]` | Gather the `kubectl`/`jcmd` outputs the skill asks for into one folder (env var names only, not values) |
+| `scripts/collect-request-pack.sh [--deep] POD [NS]` | Gather the `kubectl`/`jcmd`/cgroup outputs the skill asks for into one folder (env var names only; cgroup v1 fallback; `--deep` adds a class histogram) |
 | `scripts/arena_count.py smaps.txt --cores N` | Estimate glibc arena regions from a saved `/proc/1/smaps` |
 | `scripts/check_claims.py [--online]` | Verify `claims.json`: fields, tags, source IDs, phrases; online mode re-fetches each source |
 | `scripts/check_links.py` | Verify relative links, file references and source IDs |
-| `scripts/run_evals.py` | Run the evals against any agent command and optionally grade with a judge command |
+| `scripts/run_evals.py` | Run the evals against any agent command; deterministic regex checks always, optional judge command |
+| `scripts/check_jdk_defaults.py [--java PATH]` | Compare documented JVM defaults with a real JDK's `PrintFlagsFinal` |
+| `scripts/check_staleness.py` | Fail when a reference's `Last reviewed` date is missing, invalid, in the future or older than 6 months |
+| `scripts/format_md.py [--check] [--wrap N] [--align-tables]` | Conservative Markdown formatter: whitespace, blank lines, bullet markers; optional re-wrap and table alignment that never split code spans or change a word |
 
 ## Evals
 
@@ -161,13 +171,29 @@ python3 scripts/run_evals.py --agent-cmd "claude -p" --judge-cmd "claude -p" --o
 ```
 
 Without `--judge-cmd`, answers are saved for manual grading against the "must" and "must not"
-lines. Judge output is a model opinion; spot-check it.
+lines. Judge output is a model opinion; spot-check it. Independently of any judge, the
+deterministic patterns in [`evals/checks.json`](evals/checks.json) run on every answer and are
+reported as `regex`; they are cheap, repeatable and catch the obvious failures. Every check is
+tested against golden answers in [`evals/golden/`](evals/golden): a good answer must pass all
+of a case's checks and a plausible wrong one must fail at least one. The judge grades one
+criterion per behavior, a criterion it leaves out counts as a failure, and the run exits non-zero
+when anything fails.
 
 ## Freshness
 
-CI runs the tests, the offline claims check and the link check on every change. A monthly job
-re-fetches every source in `claims.json` and fails when a source moves or its expected text
-changes, which is the signal to re-verify that claim.
+CI runs the tests, the offline claims check, the link check, and a JDK matrix (21, 25, and 27 as
+experimental) that compares the defaults the references state with the real `PrintFlagsFinal`
+output. A monthly job re-fetches every source in `claims.json` (retrying unreachable hosts and
+warning rather than failing on them), fails when a source's expected text changes, checks that no
+reference is more than six months past its `Last reviewed` date, re-runs the JDK matrix against
+the latest builds, and opens or updates a tracking issue on failure.
+
+Markdown is kept consistent with `python3 scripts/format_md.py` (CI runs it with `--check`).
+
+To keep it maintainable: every reference carries a `Last reviewed` header, every decision-relevant
+claim is in `claims.json` with an expected phrase at its source (a claim whose source blocks
+scripts is marked `"verify": "manual"` and listed in every run), and version-bound defaults are
+executable checks rather than prose.
 
 ## Contributing
 
@@ -176,13 +202,15 @@ template (claim, one tag, source, version, date, "refuted if").
 
 ## Roadmap
 
-- More claims in `claims.json` (currently 22 of the most decision-relevant).
-- More add-ons (Spring, Kotlin coroutines) kept separate from the generic core.
+- More claims in `claims.json` (currently 33 of the most decision-relevant).
+- More add-ons (Spring, Kotlin coroutines, Kafka clients, OSS observability stacks) kept
+  separate from the generic core.
+- An independent expert review of the flag-catalog verdicts.
 - Published raw data for the measured ([E]) results.
 
 ## Status and license
 
-Version 0.1.0. Built with AI assistance (Claude), starting from the author's own JVM tuning
+Version 0.2.0. Built with AI assistance (Claude), starting from the author's own JVM tuning
 investigations. Claims are checked against the cited sources, tagged by evidence quality, and
 re-checked by CI every month; it has not yet had an independent review by a JVM expert, so
 corrections are welcome. Licensed under the [MIT License](LICENSE). Not affiliated with or endorsed by Oracle, Datadog,

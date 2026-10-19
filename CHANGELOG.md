@@ -1,5 +1,39 @@
 # Changelog
 
+## 0.2.0 - 2026-10-20
+
+- Command safety tiers (`references/command-safety.md`) and a rule in `SKILL.md`: heap dumps and
+  other high-impact commands need confirmation; redact before sharing.
+- Symptom-first entry point (`references/symptom-triage.md`) and a report template in `SKILL.md`.
+- New references: GC pause triage (G1/ZGC/Shenandoah, `SoftMaxHeapSize`), virtual threads
+  (pinning before and after JEP 491), startup/warm-up/probes/shutdown, leaks and heap dumps,
+  hot paths and allocation (JMH profilers, JFR CPU-time sampling).
+- Profiling and load: open-loop load generation, JMH profilers, JFR notes. JDK 17 row in the
+  version matrix, flagged as outside the tested range.
+- Fix: `HeapDumpOnOutOfMemoryError` fires only for heap exhaustion (was stated too broadly).
+- Evals 10-16 (GC vs throttling, virtual threads, heap dump on a struggling pod, rollout errors,
+  leak, out-of-scope, JDK 17) and deterministic regex checks in `evals/checks.json`.
+- Maintainability: JDK defaults check (`scripts/check_jdk_defaults.py`) in a CI matrix; staleness
+  check; online claims check retries and separates unreachable hosts (warning) from changed
+  content (failure); the monthly job opens a tracking issue; 11 new claims (33 total).
+- `collect-request-pack.sh`: `--deep`, JVM PID resolution (the JVM need not be PID 1), cgroup v1
+  fallback, pressure-stall info, NMT summary, redaction of secret-looking env entries and of the
+  command line, mode 700 output replaced on each run, visible failure marker for the OOM-log grep.
+- `scripts/format_md.py`: conservative Markdown formatter with `--check`, `--wrap` and
+  `--align-tables`; CI enforces `--check`.
+- Review round: command tiers now follow the man page's `Impact:` ratings (`GC.class_histogram`
+  and `GC.heap_dump` are Tier 3); heap-dump destination warnings (memory-backed volumes count
+  against the limit); G1 live-set caveat; collector verification and `gc+cpu` reading in GC
+  triage; virtual-thread pinning table by JDK release; no JVM flag disables virtual threads;
+  probe, SIGTERM and `sh -c` wording corrected; JFR CPU-time sampling marked experimental.
+- Evals: one criterion per behavior, omitted judge verdicts count as failures, fenced answer in
+  the judge prompt, non-zero exit on failure, regexes tightened and tested against golden good
+  and bad answers.
+- Claims: stronger `expect` strings, HTML normalization for online checks, `manual` and
+  `jdk-defaults` verification modes, collector-default check in the JDK matrix.
+- Freshness workflow: a `report` job opens or updates one labelled issue when any job fails;
+  warnings go to the step summary; staleness annotations list each file.
+
 ## 0.1.0 - 2026-10-19
 
 - Skill: seven-step protocol, hard rules, information-to-request list and routing table.

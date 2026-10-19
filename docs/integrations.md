@@ -26,6 +26,6 @@ paths.
 
 ## Automation
 
-`scripts/collect-request-pack.sh POD [NAMESPACE]` gathers the read-only diagnostics the skill asks
+`scripts/collect-request-pack.sh [--deep] POD [NAMESPACE]` gathers the read-only diagnostics the skill asks
 for. `scripts/arena_count.py smaps.txt --cores N` summarizes arena-like regions from a saved smaps
 file. `scripts/run_evals.py` runs the evals against any agent command.

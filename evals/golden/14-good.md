@@ -1,0 +1,1 @@
+Heap used sawtooths and is not evidence. Plot the live set after full or mixed collections over days, separate a bounded cache and native growth, use existing metrics and JFR first. A class histogram is high impact, one pod only, and a heap dump comes last.

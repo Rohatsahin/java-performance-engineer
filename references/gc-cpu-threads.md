@@ -19,12 +19,16 @@ Tags and source IDs are defined in `sources.md`.
   CPU limit or a JDK upgrade. Check the effective one with
   `java -XX:+PrintFlagsFinal -version | grep -E 'Use(G1|Serial|Parallel|Z)GC'`.
 
+- Latency-driven collector choice (ZGC, Shenandoah, `SoftMaxHeapSize`) and the pause decision
+  path are in `gc-pause-triage.md`.
+
 ## 2. GC logging
 
 ```
 -Xlog:gc*,safepoint:file=/tmp/gc.log:time,uptime,level,tags:filecount=5,filesize=20m
 -Xlog:os+container=trace
 ```
+
 [O] JAVA-MAN21, ORA-G1-TUNE. Reading: pause lines `Pause Young ... 12.3ms`; "To-space
 exhausted", `Pause Full` and a late concurrent mark signal marking started too late;
 humongous region churn in `gc+heap=info`; the safepoint log shows time-to-safepoint stalls. [P]

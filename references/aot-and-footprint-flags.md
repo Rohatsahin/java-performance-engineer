@@ -8,6 +8,7 @@ Tags and source IDs are defined in `sources.md`.
 
 | JDK | Default GC rule | Compact headers | AOT mode name | Notes |
 |---|---|---|---|---|
+| 17 | G1 on server-class machines (>= 2 CPUs and >= 1792 MB), else Serial | not available | not available | no final virtual threads; generational ZGC absent; cgroup v2 supported (see `container-memory.md`); 17 is outside this skill's tested range, so re-verify every claim |
 | 21 | G1 on server-class machines (>= 2 CPUs and >= 1792 MB), else Serial | not available | n/a | Generational ZGC opt-in (JEP 439) |
 | 25 | same as 21 | product flag, off by default (JEP 519) | `AOTMode=on` | one-step AOT cache (JEP 514) |
 | 26 | same | same | `AOTMode=on` | any-GC AOT objects (JEP 516, [A]) |

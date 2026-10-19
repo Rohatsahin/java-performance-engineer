@@ -1,0 +1,173 @@
+{
+ "1": {
+  "match": [
+   "(?i)hypothes",
+   "MALLOC_ARENA_MAX",
+   "(?i)trim_native_heap|NMT|native memory tracking",
+   "(?i)smaps|cgroup|memory\\.stat"
+  ],
+  "no_match": [
+   "(?i)\\b(certain(ly)?|guarantee[sd]?|definitely)\\b",
+   "(?i)(raise|increase|bump)\\s+(the\\s+)?(heap|xmx|maxrampercentage)\\s+first"
+  ]
+ },
+ "2": {
+  "match": [
+   "(?i)request(ed)? changes|changes requested|do not approve|not approve",
+   "MALLOC_ARENA_MAX",
+   "(?i)idle"
+  ],
+  "no_match": [
+   "(?i)\\bLGTM\\b",
+   "(?im)^\\s*(verdict:\\s*)?approve\\b"
+  ]
+ },
+ "3": {
+  "match": [
+   "(?i)lastState|memory\\.events",
+   "(?i)OOMKilled|137",
+   "(?i)NMT|native memory"
+  ],
+  "no_match": [
+   "(?i)(raise|increase|bump)\\s+(the\\s+)?(limit|heap)\\s+(first|now)"
+  ]
+ },
+ "4": {
+  "match": [
+   "(?i)Little'?s Law",
+   "(?i)hold time",
+   "(?i)max_connections|connection budget"
+  ],
+  "no_match": [
+   "(?i)50\\s+per\\s+replica\\s+is\\s+(fine|ok|good)"
+  ]
+ },
+ "5": {
+  "match": [
+   "(?i)jcmd",
+   "(?i)memory\\.max|cgroup",
+   "(?i)\\b(send|provide|share|need|please)\\b"
+  ],
+  "no_match": [
+   "(?i)\\byour\\s+(heap|memory|pod)\\s+(is|uses|has)\\b[^.\\n]*\\d"
+  ]
+ },
+ "6": {
+  "match": [
+   "(?i)JEP 523|always\\s+G1",
+   "JEP 534",
+   "AOTMode",
+   "(?i)verif"
+  ],
+  "no_match": []
+ },
+ "7": {
+  "match": [
+   "(?i)A/A|noise floor",
+   "(?i)n\\s*=\\s*2|two pods|sample size|only two"
+  ],
+  "no_match": [
+   "(?i)\\bship it\\b(?!\\s+only)",
+   "(?i)(?<!not )(?<!n't )(?<!cannot )\\b(is|are)\\s+(statistically\\s+)?significant\\b"
+  ]
+ },
+ "8": {
+  "match": [
+   "MALLOC_ARENA_MAX",
+   "(?i)A/B",
+   "(?i)no tested source|anecdot|folklore|\\[A\\]"
+  ],
+  "no_match": []
+ },
+ "9": {
+  "match": [
+   "(?i)AOT",
+   "(?i)parity|mismatch|reject",
+   "(?i)AOTMode|gate|acceptance"
+  ],
+  "no_match": []
+ },
+ "10": {
+  "match": [
+   "(?i)VM\\.flags|GC log header|which collector",
+   "(?i)cpu\\.stat|nr_throttled",
+   "(?i)safepoint",
+   "(?i)\\breal\\b",
+   "(?i)A/B|canary"
+  ],
+  "no_match": [
+   "(?i)(switch|move|migrate)\\s+to\\s+ZGC\\s+(now|first|immediately)"
+  ]
+ },
+ "11": {
+  "match": [
+   "(?i)semaphore|bulkhead|limiter",
+   "(?i)Little'?s Law",
+   "(?i)JDK 24|JEP 491",
+   "(?i)pinn",
+   "VirtualThreadPinned"
+  ],
+  "no_match": [
+   "(?i)(?<!not )(?<!never )(?<!don't )(virtual[- ]thread pool|pool(ing)?\\s+(of\\s+)?virtual threads)",
+   "(?i)(?<!not )(?<!n't )(speeds?|speeding)\\s+up\\s+CPU-bound",
+   "(?i)semaphore\\s+(of|with|at|sized\\s+(at|to))\\s+50\\b"
+  ]
+ },
+ "12": {
+  "match": [
+   "(?i)stop-the-world|full gc|pause",
+   "(?i)confirm|approv|before (i|we) run",
+   "(?i)ephemeral|memory-backed|tmpfs|emptyDir",
+   "(?i)user data|sensitive|PII",
+   "(?i)sibling|another pod|replica"
+  ],
+  "no_match": [
+   "(?i)\\b(harmless|safe to run|no (real )?impact|low impact)\\b"
+  ]
+ },
+ "13": {
+  "match": [
+   "/proc/1/cmdline",
+   "(?i)startup probe",
+   "SIGTERM",
+   "(?i)preStop|drain",
+   "(?i)terminationGracePeriodSeconds",
+   "(?i)\\bexec\\b\\s+java|as\\s+PID\\s*1"
+  ],
+  "no_match": [
+   "(?i)(increase|raise|bump)\\s+(the\\s+)?(memory|cpu)\\b"
+  ]
+ },
+ "14": {
+  "match": [
+   "(?i)live set|after (a )?(full|mixed)",
+   "(?i)histogram",
+   "(?i)cache",
+   "(?i)native|NMT",
+   "(?i)heap dump[^.\\n]*(last|only if|only when)|last[^.\\n]*heap dump"
+  ],
+  "no_match": [
+   "(?i)\\bit('s| is)\\s+(definitely\\s+|clearly\\s+)?a leak\\b",
+   "(?i)take a heap dump first"
+  ]
+ },
+ "15": {
+  "match": [
+   "groupingBy|Collectors"
+  ],
+  "no_match": [
+   "(?i)pod spec|JVM flags|MaxRAMPercentage|hypothesis|kubectl|cgroup|memory\\.max|jcmd|NMT"
+  ]
+ },
+ "16": {
+  "match": [
+   "(?i)\\bnot\\s+(yet\\s+)?available|unavailable|not supported|isn't available|aren't available|none of (these|them)|only (from|in|since)",
+   "\\b21\\b",
+   "\\b2[45]\\b",
+   "(?i)upgrade"
+  ],
+  "no_match": [
+   "(?i)(?<!not )(?<!n't )\\b(just|simply)\\s+(add|set|enable)\\b[^.\\n]*(CompactObjectHeaders|AOTCache)"
+  ]
+ }
+}

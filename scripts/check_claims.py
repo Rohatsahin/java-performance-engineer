@@ -4,12 +4,16 @@
 Offline (default, used in CI on every change): every claim has the required fields, a valid tag,
 a source ID defined in references/sources.md, and its phrase present in the named file.
 Online (--online, used by the scheduled freshness job): also fetch each claim's URL and require
-the expected text. Failures mean a source moved or changed and a human should re-verify.
+the expected text. A claim with "verify": "manual" (source blocks scripts; a human read it) or "jdk-defaults" (proved by
+scripts/check_jdk_defaults.py) is skipped online and listed. Changed content fails the run; an unreachable URL is a warning (retried with backoff), or a
+failure with --strict. Failures mean a source moved or changed and a human should re-verify.
 """
 import argparse
+import html
 import json
 import re
 import sys
+import time
 import urllib.request
 from pathlib import Path
 
@@ -47,40 +51,71 @@ def check_offline(claims, root):
     return errors
 
 
+def normalize(text):
+    """Make a fetched page comparable with an expected phrase: for HTML, drop scripts, styles and
+    tags and decode entities (including non-breaking spaces); for anything else keep the text.
+    Whitespace is collapsed and case folded either way."""
+    if re.search(r"<(!doctype|html|body)\b", text[:2000], flags=re.I):
+        text = re.sub(r"<(script|style)\b.*?</\1>", " ", text, flags=re.S | re.I)
+        text = re.sub(r"<[^>]+>", " ", text)
+        text = html.unescape(text)
+    return " ".join(text.replace("\xa0", " ").split()).lower()
+
+
 def fetch(url, timeout=20):
     req = urllib.request.Request(url, headers={"User-Agent": "jvm-performance-engineer-claims-check"})
     with urllib.request.urlopen(req, timeout=timeout) as resp:
         return resp.read().decode("utf-8", errors="replace")
 
 
-def check_online(claims, fetcher=fetch):
-    errors = []
+def check_online(claims, fetcher=fetch, retries=2, sleep=time.sleep):
+    """Return (errors, warnings). Changed content is an error; an unreachable URL is a warning,
+    because a flaky host should not fail the job, but it is listed so a human can look."""
+    errors, warnings = [], []
     for c in claims:
         url, expect = c.get("url"), c.get("expect")
-        if not url or not expect:
+        if not url or not expect or c.get("verify") in ("manual", "jdk-defaults"):
             continue
-        try:
-            body = fetcher(url)
-        except Exception as exc:
-            errors.append(f"{c['id']}: cannot fetch {url}: {exc}")
-            continue
-        if expect.lower() not in body.lower():
+        body, last_error = None, None
+        for attempt in range(retries + 1):
+            try:
+                body = fetcher(url)
+                break
+            except Exception as exc:
+                last_error = exc
+                if attempt < retries:
+                    sleep(2 ** attempt)
+        if body is None:
+            warnings.append(f"{c['id']}: cannot fetch {url}: {last_error}")
+        elif normalize(expect) not in normalize(body):
             errors.append(f"{c['id']}: {url} no longer contains {expect!r}")
-    return errors
+    return errors, warnings
 
 
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--online", action="store_true", help="also fetch each URL and check expected text")
+    ap.add_argument("--strict", action="store_true", help="treat unreachable URLs as failures")
     ap.add_argument("--claims", default=str(ROOT / "claims.json"))
     args = ap.parse_args(argv)
     claims = json.loads(Path(args.claims).read_text())["claims"]
     errors = check_offline(claims, ROOT)
+    warnings = []
     if args.online:
-        errors += check_online(claims)
+        online_errors, warnings = check_online(claims)
+        errors += online_errors
+        if args.strict:
+            errors += warnings
+            warnings = []
+    not_online = [c["id"] for c in claims if c.get("verify") in ("manual", "jdk-defaults")]
+    if args.online and not_online:
+        print("NOTE not fetched online (manual or covered by check_jdk_defaults.py):", ", ".join(not_online))
     for e in errors:
         print("FAIL", e)
-    print(f"{len(claims)} claims checked, {len(errors)} problems ({'online' if args.online else 'offline'})")
+    for w in warnings:
+        print("WARN", w)
+    print(f"{len(claims)} claims checked, {len(errors)} problems, {len(warnings)} warnings "
+          f"({'online' if args.online else 'offline'})")
     return 1 if errors else 0
 
 

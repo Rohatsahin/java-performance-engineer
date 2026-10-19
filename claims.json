@@ -6,9 +6,9 @@
    "tag": "O",
    "source_id": "JEP-519",
    "file": "references/aot-and-footprint-flags.md",
-   "phrase": "JEP 519",
+   "phrase": "product flag, off by default (JEP 519)",
    "url": "https://openjdk.org/jeps/519",
-   "expect": "UseCompactObjectHeaders",
+   "expect": "product feature",
    "version": "JDK 25"
   },
   {
@@ -17,9 +17,9 @@
    "tag": "O",
    "source_id": "JEP-534",
    "file": "references/aot-and-footprint-flags.md",
-   "phrase": "JEP 534",
+   "phrase": "on by default (JEP 534)",
    "url": "https://openjdk.org/jeps/534",
-   "expect": "UseCompactObjectHeaders",
+   "expect": "Compact Object Headers by Default",
    "version": "JDK 27"
   },
   {
@@ -30,7 +30,7 @@
    "file": "references/gc-cpu-threads.md",
    "phrase": "JEP 523",
    "url": "https://openjdk.org/jeps/523",
-   "expect": "G1",
+   "expect": "JVM will always select G1",
    "version": "JDK 27"
   },
   {
@@ -52,7 +52,7 @@
    "file": "references/gc-cpu-threads.md",
    "phrase": "G1PeriodicGCInterval",
    "url": "https://openjdk.org/jeps/346",
-   "expect": "periodic",
+   "expect": "uncommit",
    "version": "JDK 12+"
   },
   {
@@ -75,7 +75,8 @@
    "phrase": "MaxRAMPercentage",
    "url": "https://docs.oracle.com/en/java/javase/21/docs/specs/man/java.html",
    "expect": "MaxRAMPercentage",
-   "version": "JDK 21"
+   "version": "JDK 21",
+   "verify": "jdk-defaults"
   },
   {
    "id": "nmt-overhead",
@@ -94,7 +95,7 @@
    "tag": "O",
    "source_id": "K8S-QOS",
    "file": "references/container-memory.md",
-   "phrase": "Guaranteed",
+   "phrase": "Guaranteed needs requests == limits",
    "url": "https://kubernetes.io/docs/concepts/workloads/pods/pod-qos/",
    "expect": "Guaranteed",
    "version": "Kubernetes current"
@@ -171,7 +172,7 @@
    "file": "references/gc-cpu-threads.md",
    "phrase": "JEP 474",
    "url": "https://openjdk.org/jeps/474",
-   "expect": "Generational",
+   "expect": "Generational Mode by Default",
    "version": "JDK 23"
   },
   {
@@ -182,7 +183,7 @@
    "file": "references/gc-cpu-threads.md",
    "phrase": "JEP 490",
    "url": "https://openjdk.org/jeps/490",
-   "expect": "Generational",
+   "expect": "Remove the Non-Generational Mode",
    "version": "JDK 24"
   },
   {
@@ -239,6 +240,128 @@
    "url": "https://openjdk.org/projects/jdk/27/",
    "expect": "General Availability",
    "version": "JDK 27"
+  },
+  {
+   "id": "jep-491-no-pin-synchronized",
+   "text": "Virtual threads can unmount while blocked in synchronized from JDK 24.",
+   "tag": "O",
+   "source_id": "JEP-491",
+   "file": "references/virtual-threads.md",
+   "phrase": "JEP 491 describes the remaining cases",
+   "url": "https://openjdk.org/jeps/491",
+   "expect": "independently of their carriers",
+   "version": "JDK 24"
+  },
+  {
+   "id": "jep-444-pinned-event",
+   "text": "jdk.VirtualThreadPinned reports a virtual thread parked while pinned.",
+   "tag": "O",
+   "source_id": "JEP-444",
+   "file": "references/virtual-threads.md",
+   "phrase": "reports a virtual thread parked while pinned",
+   "url": "https://openjdk.org/jeps/444",
+   "expect": "VirtualThreadPinned",
+   "version": "JDK 21"
+  },
+  {
+   "id": "jep-509-cpu-time",
+   "text": "JFR CPU-time sampling on Linux, event jdk.CPUTimeSample, JDK 25.",
+   "tag": "O",
+   "source_id": "JEP-509",
+   "file": "references/hot-paths-and-allocation.md",
+   "phrase": "jdk.CPUTimeSample",
+   "url": "https://openjdk.org/jeps/509",
+   "expect": "experimental",
+   "version": "JDK 25"
+  },
+  {
+   "id": "jep-521-gen-shenandoah",
+   "text": "Generational Shenandoah is a product feature in JDK 25.",
+   "tag": "O",
+   "source_id": "JEP-521",
+   "file": "references/gc-pause-triage.md",
+   "phrase": "JEP 521",
+   "url": "https://openjdk.org/jeps/521",
+   "expect": "generational",
+   "version": "JDK 25"
+  },
+  {
+   "id": "zgc-soft-max-heap",
+   "text": "ZGC SoftMaxHeapSize is a soft limit that ZGC may exceed rather than stall.",
+   "tag": "O",
+   "source_id": "ZGC-WIKI",
+   "file": "references/gc-pause-triage.md",
+   "phrase": "SoftMaxHeapSize",
+   "url": "https://wiki.openjdk.org/display/zgc/Main",
+   "expect": "SoftMaxHeapSize",
+   "version": "ZGC wiki",
+   "verify": "manual"
+  },
+  {
+   "id": "k8s-startup-probe",
+   "text": "Liveness and readiness probes do not run until a startup probe succeeds.",
+   "tag": "O",
+   "source_id": "K8S-LIFECYCLE",
+   "file": "references/startup-and-warmup.md",
+   "phrase": "does not run liveness or readiness probes until",
+   "url": "https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/",
+   "expect": "startup probe",
+   "version": "Kubernetes current"
+  },
+  {
+   "id": "k8s-grace-period-default",
+   "text": "terminationGracePeriodSeconds defaults to 30 seconds.",
+   "tag": "O",
+   "source_id": "K8S-LIFECYCLE",
+   "file": "references/startup-and-warmup.md",
+   "phrase": "default grace period is 30 seconds",
+   "url": "https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/",
+   "expect": "30 seconds",
+   "version": "Kubernetes current"
+  },
+  {
+   "id": "jcmd-heap-dump-full-gc",
+   "text": "GC.heap_dump requests a full GC unless -all is given.",
+   "tag": "O",
+   "source_id": "JAVA-JCMD25",
+   "file": "references/command-safety.md",
+   "phrase": "requests a full GC unless",
+   "url": "https://docs.oracle.com/en/java/javase/25/docs/specs/man/jcmd.html",
+   "expect": "full GC unless",
+   "version": "JDK 25"
+  },
+  {
+   "id": "heapdump-oome-heap-only",
+   "text": "HeapDumpOnOutOfMemoryError applies only to heap exhaustion.",
+   "tag": "O",
+   "source_id": "JAVA-MAN25",
+   "file": "references/leaks-and-heap-dumps.md",
+   "phrase": "Java heap exhaustion",
+   "url": "https://docs.oracle.com/en/java/javase/25/docs/specs/man/java.html",
+   "expect": "does not apply to",
+   "version": "JDK 25"
+  },
+  {
+   "id": "jmh-prof-gc",
+   "text": "JMH -prof gc reports allocation rate and GC churn per operation.",
+   "tag": "O",
+   "source_id": "JMH-SAMPLES",
+   "file": "references/hot-paths-and-allocation.md",
+   "phrase": "-prof gc",
+   "url": "https://raw.githubusercontent.com/openjdk/jmh/master/jmh-samples/src/main/java/org/openjdk/jmh/samples/JMHSample_35_Profilers.java",
+   "expect": "-prof gc",
+   "version": "JMH master"
+  },
+  {
+   "id": "k6-open-model",
+   "text": "k6 constant-arrival-rate is an open-model executor.",
+   "tag": "O",
+   "source_id": "K6-ARRIVAL",
+   "file": "references/profiling-and-load.md",
+   "phrase": "constant-arrival-rate",
+   "url": "https://grafana.com/docs/k6/latest/using-k6/scenarios/executors/constant-arrival-rate/",
+   "expect": "constant-arrival-rate",
+   "version": "k6 current"
   }
  ]
 }
