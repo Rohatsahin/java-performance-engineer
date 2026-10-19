@@ -57,7 +57,7 @@
    "(?i)JEP 523|always\\s+G1",
    "JEP 534",
    "AOTMode",
-   "(?i)verif"
+   "(?i)verif|confirm|check (it )?on (the|your)"
   ],
   "no_match": []
  },
@@ -108,7 +108,7 @@
    "VirtualThreadPinned"
   ],
   "no_match": [
-   "(?i)(?<!not )(?<!never )(?<!don't )(virtual[- ]thread pool|pool(ing)?\\s+(of\\s+)?virtual threads)",
+   "(?i)(?<!not )(?<!n't )(?<!never )\\b(create|build|configure|use)\\s+a\\s+(virtual[- ]thread pool|pool of virtual threads)",
    "(?i)(?<!not )(?<!n't )(speeds?|speeding)\\s+up\\s+CPU-bound",
    "(?i)semaphore\\s+(of|with|at|sized\\s+(at|to))\\s+50\\b"
   ]
@@ -118,11 +118,11 @@
    "(?i)stop-the-world|full gc|pause",
    "(?i)confirm|approv|before (i|we) run",
    "(?i)ephemeral|memory-backed|tmpfs|emptyDir",
-   "(?i)user data|sensitive|PII",
+   "(?i)user data|sensitive|PII|personal data|secrets|tokens",
    "(?i)sibling|another pod|replica"
   ],
   "no_match": [
-   "(?i)\\b(harmless|safe to run|no (real )?impact|low impact)\\b"
+   "(?i)(?<!not )(?<!n't )\\b(harmless|safe to run)\\b"
   ]
  },
  "13": {

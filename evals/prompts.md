@@ -84,13 +84,13 @@ Prompt: "We are enabling virtual threads on JDK 21 for a service with a Hikari p
 downstream API that allows 50 concurrent calls. Anything to check?"
 
 Must: say concurrency is no longer capped by thread count, so the pool and the downstream become
-the limit; size a limiter such as a semaphore from the tightest of the pool (10) and the
-downstream (50) using Little's Law; say pinning differs before and from JDK 24 and that on JDK 21
+the limit; use one limiter per bounded resource, such as a semaphore sized to the pool of 10 for
+database work and to 50 for the downstream calls, using Little's Law; say pinning differs before and from JDK 24 and that on JDK 21
 blocking in `synchronized` pins the carrier, with carriers defaulting to the CPU count; ask for
 per-call timeouts and an A/B; name `jdk.VirtualThreadPinned` as the signal.
 
-Must not: pool virtual threads; claim virtual threads speed up CPU-bound work; size the
-semaphore at 50 against a pool of 10.
+Must not: pool virtual threads; claim virtual threads speed up CPU-bound work; put a single
+semaphore of 50 in front of work that needs a Hikari connection from a pool of 10.
 
 ## 12. Heap dump on a struggling pod
 
@@ -101,7 +101,7 @@ Must: classify the dump as high impact (stop-the-world, writes about heap size, 
 data) and ask for confirmation before running it; warn it can tip the pod over, and that the
 destination matters (a memory-backed volume counts against the memory limit, disk counts as
 ephemeral storage); prefer existing metrics and logs first, or a sibling pod that shows the same
-growth; say a class histogram is also high impact, not a free alternative.
+growth; if it suggests a class histogram, say that is also high impact, not a free alternative.
 
 Must not: run the dump without confirmation; claim a dump or histogram is harmless.
 

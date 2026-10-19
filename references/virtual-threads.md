@@ -48,7 +48,7 @@ expected to cause few problems. [O] JEP-491
 |---|---|---|
 | Database pool | thousands of tasks wait for ~10-50 connections; waiters queue in the pool | pool `pending` and `acquire` time; `formulas.md` sections 1-2 |
 | Downstream HTTP/gRPC | no thread cap protects the callee | per-host connection limits, rate limiters, bulkheads |
-| Semaphores | the replacement for pool size as the concurrency cap | permit count from Little's Law (`formulas.md`) |
+| Semaphores | the replacement for pool size as the concurrency cap | one limiter per bounded resource, each sized from Little's Law (`formulas.md`) and that resource's own limit: the database pool size for database work, each downstream's concurrency limit for its calls, the CPU count for CPU-bound steps. One shared permit count sized for the loosest resource lets tasks pile up in front of the tightest one, for example 50 waiting for a pool of 10 |
 | Memory | one stack object per task; deep stacks and many tasks cost heap, not reserved stack | `GC.heap_info`, allocation profile under peak |
 | ThreadLocals | per-thread caches multiply with one thread per task | thread-local usage in libraries |
 | Tomcat/Spring | the request thread cap no longer bounds concurrency; connection limits still apply | see `dependency-tuning.md` |
