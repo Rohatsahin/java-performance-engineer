@@ -179,6 +179,23 @@ of a case's checks and a plausible wrong one must fail at least one. The judge g
 criterion per behavior, a criterion it leaves out counts as a failure, and the run exits non-zero
 when anything fails.
 
+### How it was tested
+
+Tested with Claude Code only (`claude -p` reading `SKILL.md` and the references it routes to),
+using one model and a model judge from the same family. The 16 prompts were written by the
+author, with one sample per case.
+
+| Run | Judge | Regex checks |
+|---|---|---|
+| First full run, 16 cases | 65 of 69 criteria | 78 of 78 |
+| Re-run of the 4 cases that had failed, after fixing the skill text | 21 of 21, then 8 of 8 on a final re-run of case 11 | all passing |
+
+Treat this as evidence that the skill changes the agent's behavior in the intended direction, not
+as a benchmark: a judge model is an opinion, one sample per case hides variance, and the
+prompts reflect the author's own failure modes. Other agents are untested. Run
+`scripts/run_evals.py` with your own agent and judge, and open an issue with any answer you think
+is wrong.
+
 ## Freshness
 
 CI runs the tests, the offline claims check, the link check, and a JDK matrix (21, 25, and 27 as

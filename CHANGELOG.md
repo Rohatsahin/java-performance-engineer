@@ -2,6 +2,8 @@
 
 ## 0.2.0 - 2026-10-20
 
+- README: how the skill was tested, with the real-agent eval results and their limits.
+
 - Command safety tiers (`references/command-safety.md`) and a rule in `SKILL.md`: heap dumps and
   other high-impact commands need confirmation; redact before sharing.
 - Symptom-first entry point (`references/symptom-triage.md`) and a report template in `SKILL.md`.
