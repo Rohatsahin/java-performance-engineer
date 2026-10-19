@@ -670,6 +670,17 @@
    "url": "https://raw.githubusercontent.com/openjdk/jdk/jdk-25-ga/src/hotspot/share/runtime/os.cpp",
    "expect": "VM_Version::logical_processors_per_package()",
    "version": "JDK 25"
+  },
+  {
+   "id": "jdk27-g1-free-ratio-defaults",
+   "text": "On JDK 27 G1 sets MinHeapFreeRatio to 0 and MaxHeapFreeRatio to 100 unless the user sets them.",
+   "tag": "O",
+   "source_id": "JDK-SRC-27",
+   "file": "references/aot-and-footprint-flags.md",
+   "phrase": "G1 sets `MinHeapFreeRatio` 0 and `MaxHeapFreeRatio` 100 unless set",
+   "url": "https://raw.githubusercontent.com/openjdk/jdk/jdk-27-ga/src/hotspot/share/gc/g1/g1Arguments.cpp",
+   "expect": "FLAG_SET_DEFAULT(MinHeapFreeRatio, 0);",
+   "version": "JDK 27"
   }
  ]
 }

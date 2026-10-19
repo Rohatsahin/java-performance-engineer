@@ -19,6 +19,10 @@
   answers wrongly; 18 prompts; `--samples N` with a per-case pass rate.
 - Reproduction protocol and issue templates for reproductions and eval cases.
 - Kafka add-on dropped from scope.
+- JDK 27 heap-sizing defaults: the new JDK matrix job caught that G1 on JDK 27 sets
+  `MinHeapFreeRatio` 0 and `MaxHeapFreeRatio` 100 unless set and `InitialRAMPercentage` defaults to
+  0.0 (the JDK 27 man page still lists the old values); references, flag catalog and the check now
+  record this per release.
 
 - Command safety tiers (`references/command-safety.md`) and a rule in `SKILL.md`: heap dumps and
   other high-impact commands need confirmation; redact before sharing.

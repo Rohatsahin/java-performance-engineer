@@ -47,7 +47,7 @@ humongous region churn in `gc+heap=info`; the safepoint log shows time-to-safepo
 | `G1HeapRegionSize` | objects >= half a region are humongous; raise (e.g. 16m) if humongous churn drives Full GCs |
 | `ConcGCThreads` | default about a quarter of `ParallelGCThreads` [O] JAVA-MAN21; raise only if concurrent marking does not finish and Full GCs follow, and re-check throttling |
 | `G1PeriodicGCInterval` (0 = off) | when set, a periodic GC runs after that many ms without one, after which G1 can resize and return memory; G1 otherwise uncommits only at a full GC or during a concurrent cycle [O] JEP-346 |
-| `Min/MaxHeapFreeRatio` | defaults 40/70 [O] FORM-ORA-GC; confirm with `PrintFlagsFinal` on your JDK |
+| `Min/MaxHeapFreeRatio` | defaults 40/70 on JDK 21-26 [O] FORM-ORA-GC. On JDK 27 G1 sets them to 0/100 unless you set them, so it resizes on GC pressure instead (`jdk-27-ga` source; the JDK 27 man page still lists 40/70). Confirm with `PrintFlagsFinal` on your build [O] JDK-SRC-27 |
 | `-Xms` = `-Xmx` + `AlwaysPreTouch` | steadier pauses, costs RSS immediately |
 
 ## 4. CPU limits and throttling

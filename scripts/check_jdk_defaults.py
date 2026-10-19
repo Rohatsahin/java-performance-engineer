@@ -7,7 +7,8 @@
 Runs `java -XX:+PrintFlagsFinal -version`, detects the feature release, and compares the flags
 below with the values the skill documents. A mismatch means a reference is wrong for that JDK
 or the JDK changed a default: re-verify the claim, then fix the reference or this table.
-A second run with `-XX:ActiveProcessorCount=1 -XX:MaxRAM=1g` checks the default collector:
+JDK 27 changed three heap-sizing defaults (G1 sets the free ratios to 0 and 100 unless set
+explicitly; `InitialRAMPercentage` is 0.0), so those expectations are per release. A second run with `-XX:ActiveProcessorCount=1 -XX:MaxRAM=1g` checks the default collector:
 Serial before JDK 27 and G1 from JDK 27 (JEP 523). `JAVA_TOOL_OPTIONS` and friends are removed
 from the environment so they cannot change the result. Heap sizes are deliberately not checked.
 `ReservedCodeCacheSize` is compared within 1 MiB because the JVM rounds it to the page size;
@@ -37,6 +38,8 @@ def expected_for(major):
     exp = dict(COMMON)
     if sys.platform.startswith("linux"):
         exp["UseContainerSupport"] = "true"
+    if major >= 27:
+        exp.update({"InitialRAMPercentage": 0.0, "MinHeapFreeRatio": 0, "MaxHeapFreeRatio": 100})
     if major <= 23:
         exp["UseCompactObjectHeaders"] = ABSENT
     elif major in (24, 25, 26):

@@ -117,7 +117,7 @@ measurement.
 Oracle's GC tuning guide: total memory is the most important factor; unless pauses are a
 problem, grant as much as possible; `-Xms = -Xmx` removes a sizing decision; keep old gen
 large enough for live data plus 10-20% or more of slack; the heap expands to keep free space
->= 40% (`MinHeapFreeRatio`) and contracts above 70% (`MaxHeapFreeRatio`); `NewRatio=2` default;
+>= 40% (`MinHeapFreeRatio`) and contracts above 70% (`MaxHeapFreeRatio`) on JDK 21-26 (JDK 27's G1 defaults them to 0/100); `NewRatio=2` default;
 free-ratio trimming to 10 has worked "without too much performance degradation; results may
 vary". The "heap = 3-4x live data" rule is from community material, not Oracle. [A] Live data
 = old-gen occupancy after a full GC at steady state.

@@ -12,7 +12,7 @@ Tags and source IDs are defined in `sources.md`.
 | 21 | G1 on server-class machines (>= 2 CPUs and >= 1792 MB), else Serial | not available | n/a | Generational ZGC opt-in (JEP 439) |
 | 25 | same as 21 | product flag, off by default (JEP 519) | `AOTMode=on` | one-step AOT cache (JEP 514) |
 | 26 | same | same | `AOTMode=on` | AOT cache works with any GC including ZGC (JEP 516, [O]); the streamed format needs an extra CPU core to be efficient |
-| 27 (GA 2026-09-15) | G1 always (JEP 523) | on by default (JEP 534), opt out with `-XX:-UseCompactObjectHeaders` | `AOTMode=required` replaces `on`; `on` stays as a discouraged alias | `required` exits if the cache cannot load; use `auto` in production |
+| 27 (GA 2026-09-15) | G1 always (JEP 523) | on by default (JEP 534), opt out with `-XX:-UseCompactObjectHeaders` | `AOTMode=required` replaces `on`; `on` stays as a discouraged alias | `required` exits if the cache cannot load; use `auto` in production. Heap sizing defaults changed: G1 sets `MinHeapFreeRatio` 0 and `MaxHeapFreeRatio` 100 unless set, and `InitialRAMPercentage` defaults to 0.0 ([O] JDK-SRC-27; the JDK 27 man page still lists the old values) |
 
 On JDK 27 the `AOTMode=on` build gate becomes `AOTMode=required` (`on` still works as a
 discouraged alias). [O] JEP-483, JAVA-MAN27

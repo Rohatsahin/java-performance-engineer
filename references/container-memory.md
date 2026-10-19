@@ -7,7 +7,7 @@ Tags and source IDs are defined in `sources.md`.
 ## 1. JVM container ergonomics
 
 - `UseContainerSupport` is on by default on Linux. [O] JAVA-MAN21
-- `MaxRAMPercentage` default 25, `InitialRAMPercentage` 1.5625, `MinRAMPercentage` 50 (applies
+- `MaxRAMPercentage` default 25, `InitialRAMPercentage` 1.5625 (default 0.0 in the JDK 27 source), `MinRAMPercentage` 50 (applies
   only to very small heaps). [O] JAVA-MAN21
 - cgroup v2 detection: JDK 15+, backported to 8u372 and 11.0.16. Older builds on a v2 node may
   size from host RAM. [O] K8S-CGROUPS. Check: `stat -fc %T /sys/fs/cgroup/` (`cgroup2fs` = v2).

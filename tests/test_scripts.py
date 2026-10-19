@@ -120,6 +120,10 @@ class JdkDefaults(unittest.TestCase):
         self.assertEqual(exp(25)["UseCompactObjectHeaders"], "false")
         self.assertEqual(exp(27)["UseCompactObjectHeaders"], "true")
         self.assertIs(exp(21)["UseCompactObjectHeaders"], check_jdk_defaults.ABSENT)
+        self.assertEqual(exp(25)["MinHeapFreeRatio"], 40)
+        self.assertEqual(exp(27)["MinHeapFreeRatio"], 0)
+        self.assertEqual(exp(27)["MaxHeapFreeRatio"], 100)
+        self.assertEqual(exp(27)["InitialRAMPercentage"], 0.0)
         self.assertEqual(check_jdk_defaults.expected_collector(25), "UseSerialGC")
         self.assertEqual(check_jdk_defaults.expected_collector(27), "UseG1GC")
 
