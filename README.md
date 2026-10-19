@@ -182,6 +182,9 @@ template (claim, one tag, source, version, date, "refuted if").
 
 ## Status and license
 
-Early draft. Licensed under the [MIT License](LICENSE). Not affiliated with or endorsed by Oracle, Datadog,
+Early draft. Built with AI assistance (Claude), starting from the author's own JVM tuning
+investigations. Claims are checked against the cited sources, tagged by evidence quality, and
+re-checked by CI every month; it has not yet had an independent review by a JVM expert, so
+corrections are welcome. Licensed under the [MIT License](LICENSE). Not affiliated with or endorsed by Oracle, Datadog,
 Redisson, Netty or any other project named here; names are used only to identify the software they
 refer to.
