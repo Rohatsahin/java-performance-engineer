@@ -22,7 +22,7 @@ practice, **A** anecdotal. Tag definitions: `sources.md`.
 | `-XX:NativeMemoryTracking=summary` | Adopt for diagnosis; decide if it stays | O: Oracle documents 5-10% cost for NMT, malloc headers, restart to toggle. Summary-level cost on a real service not measured | n/a; if left on in production, say why |
 | `-XX:G1PeriodicGCInterval` | Not worth it at default ratios | E-isolated: periodic GCs ran but heap did not uncommit while free space stayed below `MaxHeapFreeRatio=70`. Not retested with 40 | retest with `MaxHeapFreeRatio=40` shows uncommit with acceptable CPU |
 | `-XX:TrimNativeHeapInterval` | Inferior to arena cap | E-isolated, short single run: better than control but worse than the arena cap; arena count unchanged. Experimental before JDK 23, in ms | a longer run shows it matching the cap |
-| `-XX:TieredStopAtLevel=1` | Avoid without an A/B | P: C1-only trims compile memory, lowers peak throughput; code cache default drops to 48 MB | A/B shows no p95/p99 or CPU cost |
+| `-XX:TieredStopAtLevel=1` | Avoid without an A/B | P: C1-only trims compile memory, lowers peak throughput; code cache default is 48 MB only with `-XX:-TieredCompilation` [O]; under `TieredStopAtLevel=1` it is [U] | A/B shows no p95/p99 or CPU cost |
 | `MALLOC_TRIM_THRESHOLD_`, jemalloc | Untested | A (one project report) | n/a |
 | Lower memory limit from idle data | Never | O/P: limits come from peaks under load | n/a |
 

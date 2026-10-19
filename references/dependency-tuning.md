@@ -25,6 +25,7 @@ Check what the JVM uses: `jcmd <pid> VM.info | grep -i active_processor_count`.
 | `idleConnectionTimeout`, `timeout` | 10000 ms, 3000 ms |
 | `transportMode` | NIO (EPOLL optional) |
 
+- Redisson 3.50.0 and 4.0.0 have identical defaults for these keys. [O] DEP-REDISSON-SRC
 - Several `RedissonClient` instances multiply both thread counts. Per-thread memory cost and
   local-cache memory (`RLocalCachedMap`, heap bounded by `cacheSize`) were not confirmed. [U]
 - Verify: `jcmd <pid> Thread.print | grep -c redisson-`, and `ss -tn | grep :6379 | wc -l`
@@ -34,7 +35,8 @@ Check what the JVM uses: `jcmd <pid> VM.info | grep -i active_processor_count`.
 
 - Event loop threads: `max(1, io.netty.eventLoopThreads or availableProcessors x 2)`.
 - Default allocator is **adaptive** in 4.2 (`io.netty.allocator.type` = adaptive, pooled or
-  unpooled); the release that first made it default is [U].
+  unpooled). It became the default in 4.2.0.Alpha5, so 4.2.0.Final onward; 4.1.x stays pooled. [O]
+  DEP-NETTY-MIGRATION, DEP-NETTY-SRC
 - Pooled allocator: arenas = min(cores x 2, memory-derived cap), chunk 4 MiB (page 8 KiB <<
   maxOrder 9), per-thread caches (small 256, normal 64, max cached buffer 32 KiB). Memory
   retained per arena or thread cache is not returned promptly. [O/P]
@@ -59,7 +61,7 @@ Check what the JVM uses: `jcmd <pid> VM.info | grep -i active_processor_count`.
 - Reuse channels and stubs; cap executor threads for your workload.
 - Verify: `jcmd <pid> Thread.print | grep -c grpc-default-executor`.
 
-## Spring Boot and Tomcat [O] DEP-SPRING-PROPS (page version not pinned)
+## Spring Boot and Tomcat [O] DEP-SPRING-35, DEP-SPRING-40
 
 | Property | Default |
 |---|---|
@@ -69,20 +71,24 @@ Check what the JVM uses: `jcmd <pid> VM.info | grep -i active_processor_count`.
 
 - Platform thread stacks are reserved virtual memory (1 MB Linux x64, 2 MB aarch64, [O]
   JAVA-MAN25); only touched pages reach RSS. Count threads; do not multiply by stack size.
-- Boot 3 vs 4 differences: [U]. Verify: `jcmd <pid> Thread.print | grep -c http-nio`, or the
+- Boot 3.5 and 4.0 have identical values for these keys. Verify: `jcmd <pid> Thread.print | grep -c http-nio`, or the
   `tomcat.threads.current` actuator metric (needs `server.tomcat.mbeanregistry.enabled=true`).
 
 ## HikariCP and PostgreSQL JDBC [O] DEP-HIKARI, DEP-PGJDBC
 
 - Hikari: `maximumPoolSize` 10; `minimumIdle` = max (fixed-size pool); `idleTimeout` 10 min
   (only when minimumIdle < max); `maxLifetime` 30 min, set a few seconds below any DB or proxy
-  limit; `connectionTimeout` 30 s. `keepaliveTime` default: [U], check your version.
+  limit; `connectionTimeout` 30 s. `keepaliveTime` defaults to 0 (disabled) through 6.2.0 and to 120000 ms (2 min) from 6.2.1; it
+  must be at least 30 s and below `maxLifetime`, else it is disabled with a warning. [O] DEP-HIKARI-SRC.
+  Check the resolved Hikari version in your Spring Boot BOM.
 - The README argues far fewer connections usually perform better than many. Size the pool from
   concurrent DB work, not from request threads (`formulas.md`).
 - pgjdbc: `prepareThreshold` 5; statement cache 256 queries or 5 MiB **per connection** (client
   heap = pool size x up to 5 MiB); `defaultRowFetchSize` 0 means the whole result set is read
   into memory, so set a fetch size (and disable autocommit) to stream large results.
-- Server-side memory per PostgreSQL connection: [U].
+- Each connection is a separate PostgreSQL backend process, and `work_mem` (4 MB default) applies per
+  sort/hash operation, so worst case is connections x operations x `work_mem`. [O] PG-DOCS A
+  per-connection RSS figure is not documented. [U]
 - Verify: `hikaricp.connections.active/pending` metrics; `select count(*) from pg_stat_activity`.
 
 ## AWS SDK for Java v2 [O] DEP-AWS-HTTP, DEP-AWS-BEST

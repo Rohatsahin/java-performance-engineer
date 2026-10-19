@@ -80,7 +80,6 @@ version differs from the one noted. Last researched 2026-10.
 - `DEP-NETTY-MIGRATION` https://netty.io/wiki/netty-4.2-migration-guide.html
 - `DEP-GRPC-SRC` https://github.com/grpc/grpc-java (netty/Utils.java, core/GrpcUtil.java, NettyServerBuilder, NettyChannelBuilder)
 - `DEP-GRPC-PERF` https://grpc.io/docs/guides/performance/
-- `DEP-SPRING-PROPS` https://docs.spring.io/spring-boot/appendix/application-properties/index.html
 - `DEP-HIKARI` https://github.com/brettwooldridge/HikariCP
 - `DEP-PGJDBC` https://jdbc.postgresql.org/documentation/use/
 - `DEP-AWS-HTTP` https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/http-configuration.html
@@ -103,3 +102,22 @@ version differs from the one noted. Last researched 2026-10.
 - `FORM-AMDAHL` Amdahl 1967; covered by `FORM-USL` as the beta = 0 case
 - `FORM-NIST` https://www.itl.nist.gov/div898/handbook/eda/section3/eda353.htm
 - Georges et al. 2007 https://dri.es/files/oopsla07-georges.pdf 
+
+## Added after the 2026-10 verification pass
+
+- `JAVA-MAN27` https://docs.oracle.com/en/java/javase/27/docs/specs/man/java.html
+- `JDK27-STATUS` JDK 27 GA 2026-09-15: https://openjdk.org/projects/jdk/27/
+- `JEP-474` (generational ZGC default, JDK 23) https://openjdk.org/jeps/474
+- `JEP-490` (non-generational ZGC removed, JDK 24) https://openjdk.org/jeps/490
+- `JDK-SRC-21` https://github.com/openjdk/jdk/tree/jdk-21-ga (cgroupSubsystem_linux.cpp)
+- `JDK-SRC-27` https://github.com/openjdk/jdk/tree/jdk-27-ga (debug.cpp, globals.hpp, compiler_globals.hpp, os_linux.cpp)
+- `JDK-8356693` (`-javaagent` in the AOT workflow, fixed in JDK 25) https://bugs.openjdk.org/browse/JDK-8356693
+- `JFR-META` https://github.com/openjdk/jdk/blob/jdk-25-ga/src/hotspot/share/jfr/metadata/metadata.xml
+- `CADVISOR` https://github.com/google/cadvisor/blob/master/docs/storage/prometheus.md
+- `PG-DOCS` https://www.postgresql.org/docs/18/runtime-config-connection.html and /runtime-config-resource.html
+- `ASYNC-TROUBLESHOOT` https://github.com/async-profiler/async-profiler/blob/master/docs/Troubleshooting.md
+- `DEP-HIKARI-SRC` https://github.com/brettwooldridge/HikariCP/blob/HikariCP-7.0.2/src/main/java/com/zaxxer/hikari/HikariConfig.java (and tags 5.1.0 to 6.3.0)
+- `DEP-SPRING-35` https://docs.spring.io/spring-boot/3.5/appendix/application-properties/index.html
+- `DEP-SPRING-40` https://docs.spring.io/spring-boot/4.0/appendix/application-properties/index.html
+- `DEP-REDISSON-SRC` https://github.com/redisson/redisson/blob/redisson-4.0.0/redisson/src/main/java/org/redisson/config/Config.java (compared with redisson-3.50.0)
+- `DD-AOT` see `addons/datadog.md`

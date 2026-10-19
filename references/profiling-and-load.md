@@ -9,12 +9,14 @@ Tags and source IDs are defined in `sources.md`.
 1. **JFR**: `jcmd <pid> JFR.start name=p settings=profile duration=2m filename=/tmp/app-%p.jfr maxsize=200m`;
    `JFR.dump name=p filename=...` keeps recording; `JFR.stop`. `profile` costs more than
    `default`. [O] ORA-JCMD Useful events (`jdk.GarbageCollection`, `jdk.CPULoad`,
-   `jdk.ExecutionSample`): [U], confirm names with `jfr summary`.
+   `jdk.ExecutionSample`, `jdk.NativeMemoryUsage`) exist in JDK 21 and 25. [O] JFR-META Whether the
+   native memory events need NMT enabled is [U]; confirm with `jfr summary`.
 2. **async-profiler modes** [O] ASYNC-MODES: `cpu` (Java, native and kernel stacks), `alloc`
    (TLAB sampled, `--alloc 2m`), `lock` (`-e lock`), `wall` (`-e wall -t -i 50ms`, includes
    blocked threads; best per-thread view). Example: `asprof -e wall -t -i 50ms -f out.html <pid>`.
-   Container prerequisites (perf_events access, `CAP_SYS_ADMIN`, ptrace, seccomp) are [U] in
-   this reference; check the async-profiler docs for your version and expect to need them.
+   If `perf_event_open` is blocked (`perf_event_paranoid` >= 2, or seccomp in a container), use
+   `--fdtransfer`, loosen seccomp or add `SYS_ADMIN`, or fall back to `-e ctimer` (no kernel
+   frames); `itimer` is the pre-3.0 name. [O] ASYNC-TROUBLESHOOT
 3. **Vendor continuous profilers**: see `addons/` (Datadog).
 4. **Flame graphs**: width is share of samples, not time order. CPU flames show on-CPU only;
    blocking latency needs wall mode. Hunt wide plateaus. [P]

@@ -46,3 +46,12 @@ with and without `-javaagent`, using NMT and `Thread.print | grep dd-`. Profiler
 - `DD-JAVA` https://docs.datadoghq.com/profiler/profiler_troubleshooting/java/
 - `DD-SETUP` https://docs.datadoghq.com/tracing/trace_collection/automatic_instrumentation/dd_libraries/java/
 - `DDPROF-SRC` https://github.com/DataDog/java-profiler/blob/bf00ddfb976d749e1a83fba36d5ce3e637b94257/ddprof-lib/src/main/cpp/sanityCheck.cpp ; warning seen in https://github.com/DataDog/dd-trace-java/issues/12542
+
+## AOT cache compatibility [O] DD-AOT
+
+Datadog documents AOT class loading and linking support on JDK 25+ with dd-java-agent 1.57.0 or
+later. Attach the same `-javaagent` in both the training run and production; if it is missing at
+training time the production JVM warns about a mismatched `java.instrument` module setting and
+cannot use the cache. No Datadog statement on classic CDS was found.
+
+- `DD-AOT` https://docs.datadoghq.com/tracing/trace_collection/compatibility/java/

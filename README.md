@@ -176,7 +176,7 @@ template (claim, one tag, source, version, date, "refuted if").
 
 ## Roadmap
 
-- More claims in `claims.json` (currently 15 of the most decision-relevant).
+- More claims in `claims.json` (currently 22 of the most decision-relevant).
 - More add-ons (Spring, Kotlin coroutines) kept separate from the generic core.
 - Published raw data for the measured ([E]) results.
 

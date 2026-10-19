@@ -11,9 +11,10 @@ Tags and source IDs are defined in `sources.md`.
   is a top priority. It is a starting point, so measure. [O] ORA-GC-COLL
 - JDK 9-26 ergonomics: a "server-class machine" (>= 2 CPUs and >= 1792 MB) gets G1; otherwise
   Serial. JEP 523 (JDK 27) always selects G1. [O] JEP-523
-- Generational ZGC: JEP 439 (JDK 21), opt-in with `-XX:+ZGenerational`. Later releases made the
-  generational mode the default and removed the non-generational mode (JEPs 474 and 490), after
-  which that flag is obsolete. [O] JEP-439; [P] for the later JEPs, check your release.
+- Generational ZGC: JEP 439 (JDK 21), opt-in with `-XX:+ZGenerational`. `-XX:+UseZGC` is
+  generational by default since JDK 23 (JEP 474) and the non-generational mode was removed in
+  JDK 24 (JEP 490); `-XX:+/-ZGenerational` now only prints an obsolete-option warning and may be
+  rejected in a future release. [O] JEP-439, JEP-474, JEP-490
 - Pin the collector (`-XX:+UseG1GC` or `-XX:+UseSerialGC`) so the choice does not flip with the
   CPU limit or a JDK upgrade. Check the effective one with
   `java -XX:+PrintFlagsFinal -version | grep -E 'Use(G1|Serial|Parallel|Z)GC'`.
@@ -44,8 +45,8 @@ humongous region churn in `gc+heap=info`; the safepoint log shows time-to-safepo
 ## 4. CPU limits and throttling
 
 - `availableProcessors()` comes from the cgroup quota divided by the period, rounded up
-  (500m -> 1, 1500m -> 2), capped at host CPUs. [P] (rounding from a HotSpot source comment via
-  summary; JDK-8197589 does not state it)
+  (500m -> 1, 1500m -> 2), capped at host CPUs. [O] JDK-SRC-21, JDK-SRC-27 (source: the cgroup
+  code in JDK 21, `os::active_processor_count` in 27)
 - CPU shares (requests) were treated as a hard limit on JDK 10-18; JDK-8281181 removed that in
   JDK 19 (11.0.17, 17.0.5, 18.0.2 backports). A pod with a request but no limit therefore sees
   host CPUs and sizes GC/JIT/ForkJoin/Netty pools for them. [O] JDK-8281181 Older posts that
@@ -54,8 +55,9 @@ humongous region churn in `gc+heap=info`; the safepoint log shows time-to-safepo
   [O] JAVA-MAN21 `CICompilerCount` defaults from CPUs and can be set.
 - Detect throttling in `/sys/fs/cgroup/cpu.stat`: `nr_periods`, `nr_throttled`,
   `throttled_usec`; `cpu.max` is `$MAX $PERIOD`. [O] KERNEL-CG2. Alert on the throttled-period
-  ratio, not average CPU. The Prometheus names `container_cpu_cfs_throttled_periods_total`
-  / `container_cpu_cfs_periods_total` are common but unconfirmed here. [U]
+  ratio, not average CPU. cAdvisor exports `container_cpu_cfs_periods_total`,
+  `container_cpu_cfs_throttled_periods_total` and `container_cpu_cfs_throttled_seconds_total`;
+  throttle ratio = rate(throttled periods) / rate(periods). [O] CADVISOR
 - Mechanism: a 500m limit is 50 ms per 100 ms period; once spent, all threads stop until the
   next period, so many GC/JIT/event-loop threads burn it fast and add latency at low average
   CPU. [P]

@@ -71,7 +71,7 @@ dmesg -T | grep -iE 'oom|killed process'        # on the node
   memory") is logged by the JVM; the heap dump hook fires only for that, never for a kernel
   SIGKILL. [P]
 - If the pod dies only when the node is tight, check node pressure and neighbours too.
-- Exit code and dump ordering for `ExitOnOutOfMemoryError`: [U]; confirm on your JDK.
+- `ExitOnOutOfMemoryError` exits with status 3; the heap dump (if enabled) is written before the exit, and `CrashOnOutOfMemoryError` aborts instead. [O] JDK-SRC-27 (source at jdk-27-ga). It never fires for a kernel OOM kill (137).
 
 ## 4. Native memory workflow
 

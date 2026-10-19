@@ -41,7 +41,7 @@ measurement.
 - Threads that outnumber connections queue in your process (cheap); connections that outnumber
   DB cores queue inside the database (expensive).
 - Budget across services (arithmetic, [P]): `(replicas + surge) x pool_size + other services'
-  maximums + superuser_reserved_connections (PostgreSQL default 3) + admin/migration headroom
+  maximums + superuser_reserved_connections (PostgreSQL default 3, [O] PG-DOCS) + admin/migration headroom
   <= max_connections`. Example: `max_connections` 100, two other services at 20 each, 3
   reserved, ~7 headroom leaves ~50 for this service; 6 replicas gives 8 each, and a rolling
   deploy that briefly adds a 7th replica needs `7 x 8 + 40 + 3 = 99`, so leave room or use a

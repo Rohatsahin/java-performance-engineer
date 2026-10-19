@@ -11,10 +11,10 @@ Tags and source IDs are defined in `sources.md`.
 | 21 | G1 on server-class machines (>= 2 CPUs and >= 1792 MB), else Serial | not available | n/a | Generational ZGC opt-in (JEP 439) |
 | 25 | same as 21 | product flag, off by default (JEP 519) | `AOTMode=on` | one-step AOT cache (JEP 514) |
 | 26 | same | same | `AOTMode=on` | any-GC AOT objects (JEP 516, [A]) |
-| 27 | G1 always (JEP 523) | on by default (JEP 534), opt out with `-XX:-UseCompactObjectHeaders` | `AOTMode=required` replaces `on` (per JEP 483 page; behavior difference not stated) | pending verification on a release build |
+| 27 (GA 2026-09-15) | G1 always (JEP 523) | on by default (JEP 534), opt out with `-XX:-UseCompactObjectHeaders` | `AOTMode=required` replaces `on`; `on` stays as a discouraged alias | `required` exits if the cache cannot load; use `auto` in production |
 
-On JDK 27 the `AOTMode=on` gate used elsewhere in this skill becomes `required`; check the JDK's
-own `java -XX:+PrintFlagsFinal` output and the JEP 483 text for your release.
+On JDK 27 the `AOTMode=on` build gate becomes `AOTMode=required` (`on` still works as a
+discouraged alias). [O] JEP-483, JAVA-MAN27
 
 ## AOT cache (Project Leyden)
 
@@ -23,7 +23,7 @@ own `java -XX:+PrintFlagsFinal` output and the JEP 483 text for your release.
 | 24 | JEP 483: AOT class loading and linking, two-step record/create. [O] |
 | 25 | JEP 514 `-XX:AOTCacheOutput` one-step; JEP 515 method profiles in the cache. [O] |
 | 26 | JEP 516: object caching with any GC (from an article, not read on the JEP). [A] INSIDE-AOT |
-| 27 | `AOTMode=on` renamed `required` per the JEP 483 page. [O] |
+| 27 | `AOTMode=on` renamed `required`; `on` kept as a discouraged alias. [O] JEP-483, JAVA-MAN27 |
 
 ```
 java -XX:AOTMode=record -XX:AOTConfiguration=app.aotconf -cp app.jar Main
@@ -44,12 +44,14 @@ java -XX:AOTCache=app.aot -cp app.jar Main           # production
   `on` errors and exits if the cache is missing or unusable, and JEP 483 warns a monitoring
   agent can then stop the app from starting. Use `on` in CI/canary to prove usage, `auto` in
   production (fail-open). [O] JEP-483, JAVA-MAN25
-- **Verify:** `-XX:AOTMode=on ... -version` in the build; `-Xlog:aot,class+path=info`.
+- **Verify:** `-XX:AOTMode=on ... -version` in the build (`required` on JDK 27); `-Xlog:aot,class+path=info`.
   [O/A] INSIDE-AOT. `-Xshare:on` is for testing only. [O] JAVA-MAN25
 - **Training:** a short run that exercises startup and common modes; not full test suites; a
   synthetic driver if the app needs a DB; same base image, JDK and arch as production.
   [O] JEP-483
-- Whether a given `-javaagent` blocks the AOT cache: [U]; test with the cache-acceptance gate.
+- A `-javaagent` must be attached in both the training and the production run; a mismatch
+  (for example `java.instrument` present only at runtime) makes the JVM unable to use the cache.
+  JDK 25 and later allow `-javaagent` in the AOT workflow (JDK-8356693). [O] DD-AOT, JDK-8356693
 
 ## Compact object headers
 
@@ -71,8 +73,8 @@ in the JEPs. [U] Test with your agents and the AOT cache together.
 | `CICompilerCount` | auto from CPU and memory | leave default |
 | `AlwaysPreTouch` | touches every heap page at start | raises RSS to full heap at once; wrong for footprint |
 | `UseTransparentHugePages` | Linux only, off, experimental | avoid for footprint |
-| `TieredStopAtLevel` | [U] in the page read | [P]: C1-only trims compile memory/startup CPU but lowers peak throughput; A/B first |
-| `ExitOnOutOfMemoryError` | [U] in the page read | [P]: fail fast so Kubernetes restarts |
+| `TieredStopAtLevel` | default 4 (full), range 0-4 [O] JDK-SRC-27; man page gives no effect text | [P]: C1-only trims compile memory/startup CPU but lowers peak throughput; A/B first. The 240 MB (tiered) vs 48 MB (`-XX:-TieredCompilation`) code cache defaults are [O] JAVA-MAN27; the value under `TieredStopAtLevel=1` is [U], check `PrintFlagsFinal` |
+| `ExitOnOutOfMemoryError` | exits the JVM with status 3 on the first JVM-thrown OOM; `CrashOnOutOfMemoryError` aborts with an error log and core file. With `HeapDumpOnOutOfMemoryError` the dump is written first, and Crash takes precedence over Exit. [O] JDK-SRC-27 (source at jdk-27-ga, not in the man page) | [P]: fail fast so Kubernetes restarts; exit code 137 is the kernel OOM kill, not this flag |
 
 ## Allocators
 
