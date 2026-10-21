@@ -1,0 +1,22 @@
+name: Claim correction
+description: A statement in the skill is wrong, outdated or overstated
+labels: [accuracy]
+body:
+  - type: input
+    id: location
+    attributes:
+      label: File and statement
+    validations:
+      required: true
+  - type: textarea
+    id: correction
+    attributes:
+      label: What is wrong and what is correct
+    validations:
+      required: true
+  - type: input
+    id: source
+    attributes:
+      label: Primary source URL and version it applies to
+    validations:
+      required: true

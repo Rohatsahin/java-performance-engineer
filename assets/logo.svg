@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-labelledby="t d">
+  <title id="t">jvm-performance-engineer logo</title>
+  <desc id="d">A memory-usage bar chart under a magnifying glass on a dark rounded square.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1E293B"/>
+      <stop offset="1" stop-color="#0B1220"/>
+    </linearGradient>
+    <linearGradient id="bar" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0" stop-color="#2563EB"/>
+      <stop offset="1" stop-color="#38BDF8"/>
+    </linearGradient>
+  </defs>
+  <rect width="256" height="256" rx="48" fill="url(#bg)"/>
+  <g fill="url(#bar)">
+    <rect x="48" y="150" width="30" height="58" rx="6"/>
+    <rect x="92" y="122" width="30" height="86" rx="6"/>
+    <rect x="136" y="92" width="30" height="116" rx="6"/>
+    <rect x="180" y="64" width="30" height="144" rx="6" opacity="0.45"/>
+  </g>
+  <line x1="40" y1="212" x2="216" y2="212" stroke="#475569" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="148" cy="104" r="44" fill="#0B1220" fill-opacity="0.55" stroke="#F59E0B" stroke-width="10"/>
+  <line x1="180" y1="136" x2="212" y2="168" stroke="#F59E0B" stroke-width="14" stroke-linecap="round"/>
+</svg>
