@@ -13,23 +13,23 @@ Two anonymized investigations that show the reasoning, not benchmark numbers. JD
   memory; if it did not, the hypothesis was wrong.
 - **Experiment:** same-node A/B on idle copies of one service: control, arena cap, plus periodic
   GC, plus compact headers.
-- **Result [E]:** in this one same-node comparison (no raw data or n published) the arena cap gave the largest saving and the gap grew with uptime; compact headers
+- **Result [A]:** in one same-node comparison (no raw data or n published) the arena cap gave the largest saving and the gap grew with uptime; compact headers
   helped less; periodic GC added memory and never uncommitted heap, so it was dropped on review.
 - **Lesson:** a build gate that fails if the AOT cache would be rejected turned a silent
   regression into a loud one.
 
 ## 2. Heap ceiling, free ratios and client threads
 
-- **Symptom:** pods at 70-85% of limit; a profiler warned the estimated requirement exceeded
+- **Symptom:** pods sitting well above half of their memory limit; a profiler warned the estimated requirement exceeded
   available memory.
-- **Data:** peak heap used far below the ceiling, zero major GCs, ~120 threads.
+- **Data:** peak heap used far below the ceiling, zero major GCs, and a thread count well above what the services needed.
 - **Change (bundled in one commit, so attribution is inference):** lower heap ceiling, free ratios
   10/40, NMT summary, client thread pools cut roughly fourfold.
 - **Wrong claim corrected:** an earlier note said the profiler estimate was unaffected by these
   flags. True for arena/trim flags, false for the heap ceiling.
-- **Result:** working set fell by roughly a third in production over 16 hours with no major GCs,
-  restarts or OOM. Attribution is unknown: the change was bundled and had no control, and a
-  modest drop in thread count is unlikely to explain a drop of that size alone (inference, not measured). A per-flag A/B is the
+- **Result [A]:** working set fell noticeably in production over a single observation window, with no
+  major GCs, restarts or OOM. Attribution is unknown: the change was bundled and had no control, and a
+  modest drop in thread count is unlikely to explain the whole drop (inference, not measured). A per-flag A/B is the
   way to attribute it.
 - **Lesson:** observed production peaks were well above the idle average, so limits were not cut
   from idle numbers.

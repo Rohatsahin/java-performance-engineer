@@ -65,18 +65,18 @@ The skill is a directory with a `SKILL.md` entry point. The folder name must mat
 
 ```bash
 # project-level (shared with your team through the repo)
-git clone https://github.com/Rohatsahin/java-performance-engineer.git \
+git clone https://github.com/Rohatsahin/jvm-performance-engineer.git \
   .claude/skills/jvm-performance-engineer
 
 # or user-level (available in every project)
-git clone https://github.com/Rohatsahin/java-performance-engineer.git \
+git clone https://github.com/Rohatsahin/jvm-performance-engineer.git \
   ~/.claude/skills/jvm-performance-engineer
 ```
 
 Prefer to track updates inside a repo? Use a submodule:
 
 ```bash
-git submodule add https://github.com/Rohatsahin/java-performance-engineer.git \
+git submodule add https://github.com/Rohatsahin/jvm-performance-engineer.git \
   .claude/skills/jvm-performance-engineer
 ```
 
@@ -142,7 +142,7 @@ assets/         logo
 ## Evidence policy
 
 Every claim carries a tag: **[O]** official docs, **[P]** widely repeated practice, **[A]**
-anecdotal, **[U]** unverified, **[E]** measured by the authors (raw data not published). Sources are
+anecdotal, **[U]** unverified, **[E]** measured with published raw data (none yet; the authors' unpublished observations are [A]). Sources are
 in [`references/sources.md`](references/sources.md). Facts are stamped with the JDK or library
 version they were checked against. Version-bound facts rot fastest: JDK 27 changes the default GC
 rule, the compact headers default and the AOT mode name. Re-verify when yours differs.
@@ -228,7 +228,7 @@ template (claim, one tag, source, version, date, "refuted if").
   separate from the generic core and written to the same evidence standard.
 - An independent expert review and reproductions of the flag-catalog verdicts
   (`docs/reproduce-a-verdict.md`).
-- Published raw data for the measured ([E]) results.
+- Published raw data, so that the authors' observations can be promoted from [A] to [E].
 
 ## Status and license
 

@@ -7,8 +7,9 @@ Evidence policy:
 - A claim carries one tag. A combined tag (for example `[O/P]`) means different parts of the
   sentence have different quality; prefer splitting into two claims.
 - Every [O] claim cites a source ID from this file and states the JDK/library version when it
-  is version-bound. [E] means measured by the authors, not reproducible until raw data is
-  published.
+  is version-bound. [E] is reserved for results whose method and raw data are published so
+  others can reproduce them; none are published yet, so the authors' own unpublished
+  observations are tagged [A].
 - Moving URLs (`master`/branch links) should be re-pinned to a tag or commit when a claim
   depends on exact behavior.
 
@@ -19,7 +20,8 @@ Tags used across references:
   authoritative page.
 - **[A] ANECDOTAL**: a single blog, issue or project report. Treat as a hypothesis to A/B.
 - **[U] UNVERIFIED**: could not be confirmed from a fetched source. Test before relying on it.
-- **[E] EMPIRICAL**: measured in the authors' experiments (see `case-studies.md`).
+- **[E] EMPIRICAL**: measured, with method, versions, sample size and raw data published.
+  Nothing carries this tag yet; unpublished observations from the authors' own runs are [A].
 
 Docs change with JDK and Kubernetes versions. Re-check a source when the JDK, glibc or cluster
 version differs from the one noted. Last researched 2026-10.

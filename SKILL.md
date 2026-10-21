@@ -125,7 +125,8 @@ covered: non-HotSpot JVMs, Windows containers, deep application design.
 ## Trust
 
 Claims carry tags defined in `references/sources.md`: [O] official, [P] practice, [A]
-anecdotal, [U] unverified, [E] measured by the authors. Combined tags mean different parts of
+anecdotal (including the authors' unpublished observations), [U] unverified, [E] measured with
+published raw data (none yet). Combined tags mean different parts of
 the line have different quality; read the sentence. Treat [A] and [U] as hypotheses to test.
 Re-check a claim when the JDK, glibc or Kubernetes version differs from the one recorded.
 

@@ -39,7 +39,7 @@ java -XX:AOTCache=app.aot -cp app.jar Main           # production
   that rewrite classes via ClassFileLoadHook. GC and main class may differ. Rebuild the cache
   on every build. [O] JEP-483, INSIDE-AOT
 - **Flags like compact headers are not in that list.** In the authors' build, an archive created
-  without `UseCompactObjectHeaders` was rejected by a runtime that set it. [E] Always run
+  without `UseCompactObjectHeaders` was rejected by a runtime that set it. [A] Always run
   the gate below instead of assuming; whether other `-XX` flags invalidate is [U].
 - **AOTMode:** `auto` (default) uses the cache if loadable, otherwise warns and continues;
   `on` errors and exits if the cache is missing or unusable, and JEP 483 warns a monitoring

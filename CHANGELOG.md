@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+- Datadog add-on: fleet metrics as Tier 1 evidence (tag and aggregation traps, restart and
+  headroom semantics, ranking non-heap suspects). Reviewed by independent JVM-engineer and
+  methodology passes; findings applied. Vendor metric semantics are tagged `[U]`.
+- Symptom triage: a row for reviewing a service or fleet when there is no symptom.
+- Trust tags: the authors' unpublished observations are now `[A]`; `[E]` is reserved for results
+  with published raw data (none yet). Case studies made qualitative.
+- README clone URLs use the `jvm-performance-engineer` repository name.
+
 ## 0.2.0 - 2026-10-20
 
 - README: how the skill was tested, with the real-agent eval results and their limits.

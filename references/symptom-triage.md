@@ -18,6 +18,7 @@ Every row is a hypothesis generator, not a diagnosis. Command tiers: `command-sa
 | Threads very many, or `unable to create native thread` | thread count by pool, `ulimit`/`pids.max`, `memory.events` | default pools, unbounded executors | `gc-cpu-threads.md` section 5, `dependency-tuning.md` |
 | Connection pool saturated, DB healthy | pending/usage metrics, hold time, `max_connections` budget | long holds beat undersized pool | `formulas.md`, `dependency-tuning.md` |
 | Virtual threads: stalls or low concurrency | `jdk.VirtualThreadPinned` events, thread dump (Tier 2), semaphore/pool limits | pinning, downstream limit, CPU-bound work | `virtual-threads.md` |
+| No symptom, asked to review a service or fleet | Per service and per pod over a stated window that includes a peak: peak heap used vs heap max (occupancy, not headroom), Full GC count, CPU throttling (`container.cpu.throttled`), working set vs limit, per-pod restarts then `lastState` (`addons/datadog.md` for metric names and caveats) | nothing flagged: report the window and load shape, not "all clear"; working set far above siblings with a small heap: non-heap suspected, unconfirmed until `memory.stat`/NMT (Tier 2 if NMT is on, Tier 3 if enabling it); restarts: cause unknown until `lastState` | `memory-model.md`, `container-memory.md` |
 | "Is this flag worth it?" | the flag catalog verdict, then an A/B | adopt, candidate, avoid | `flag-catalog.md`, `ab-test-recipe.md` |
 
 ## Ground rules

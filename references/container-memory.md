@@ -89,7 +89,7 @@ dmesg -T | grep -iE 'oom|killed process'        # on the node
 5. glibc: `MALLOC_ARENA_MAX` default 0 means the cap derives from the CPUs online on the host
    (not the cgroup CPU limit), so a pod limited to 2 CPUs on a many-core node can still grow
    many arenas. [P] The source (`malloc/arena.c`, `NARENAS_FROM_NCORES`) gives 8 per core on
-   64-bit [O] GLIBC-ARENA-SRC, and arena-sized region counts consistent with it were seen in the authors' runs [E]. It is an upper
+   64-bit [O] GLIBC-ARENA-SRC, and arena-sized region counts consistent with it were seen in the authors' runs [A]. It is an upper
    bound reached only with enough contending threads. `MALLOC_TRIM_THRESHOLD_` default 128 KB but dynamic; setting it (or
    `MALLOC_MMAP_THRESHOLD_`) fixes the value and disables the dynamic adjustment. [O] GLIBC-TUN
    Values from 1 to 4 are used in practice; none is backed by a vendor benchmark, and a lower
